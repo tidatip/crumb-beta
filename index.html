@@ -730,6 +730,38 @@ textarea{min-height:76px}
 .tpskip{margin-top:12px;font-size:13px;color:var(--ink-2)}
 .tpskip summary{cursor:pointer;color:var(--muted)}
 /*fi*/
+.mapin{display:grid;grid-template-columns:1fr auto;gap:8px}
+.mapin button{display:flex;gap:5px;align-items:center;padding:0 12px;border-radius:12px;background:var(--surface-2);color:var(--accent);font-size:13.5px;font-weight:500;white-space:nowrap}
+.mapin button svg{width:15px;height:15px}
+.mapchip{display:grid;grid-template-columns:18px 1fr 28px;gap:8px;align-items:center;margin-top:8px;padding:9px 6px 9px 12px;border-radius:12px;background:color-mix(in srgb,var(--accent) 10%,var(--surface))}
+.mapchip>svg{width:16px;height:16px;color:var(--accent)}
+.mapchip b{display:block;font-weight:500;font-size:14px}
+.mapchip small{display:block;font-size:12.5px;color:var(--ink-2)}
+.mapchip button{width:28px;height:28px;display:grid;place-items:center;color:var(--muted)}
+.mapchip button svg{width:14px;height:14px}
+.locbox{display:block}
+.locbox textarea{min-height:64px}
+.locbox .hint{grid-column:1/-1}
+.locbox[hidden]{display:none}
+.locadd{margin-top:8px;font-size:13.5px;color:var(--accent);background:none;padding:2px 0}
+.stop .ttl small.loc,.icard small.loc{display:block;font-size:13px;font-weight:400;color:var(--muted);margin-top:1px}
+.locin{font-weight:400;color:var(--muted)}
+.drvbtn{display:flex;gap:10px;align-items:center;width:100%;margin-top:12px;padding:12px 14px;border-radius:16px;background:var(--surface);text-align:left;color:var(--ink);font-size:15px;font-weight:500;box-shadow:0 2px 10px rgba(0,0,0,.04)}
+.drvbtn svg{width:22px;height:22px;color:var(--accent);flex:0 0 auto}
+.drvbtn small{display:block;font-size:13px;color:var(--muted);font-weight:400}
+.drv{position:fixed;inset:0;z-index:60;background:#fff;color:#111;display:grid;place-items:center;padding:24px 20px calc(24px + env(safe-area-inset-bottom));overflow:auto}
+.drvin{text-align:center;max-width:640px;width:100%}
+.drvph{font-size:24px;color:#333;margin-bottom:22px}
+.drvph small{display:block;font-size:14px;color:#888;margin-top:4px}
+.drva{font-size:clamp(28px,8.5vw,48px);font-weight:600;line-height:1.35;word-break:break-word}
+.drva2{font-size:17px;color:#666;margin-top:8px;line-height:1.4}
+.drvn{font-size:clamp(22px,6.5vw,34px);font-weight:500;margin-top:18px;color:#222}
+.drvt{font-size:16px;color:#777;margin-top:4px}
+.drvbtns{display:flex;flex-direction:column;gap:10px;margin-top:30px}
+.drvbtns a,.drvbtns button{display:flex;gap:8px;align-items:center;justify-content:center;height:50px;border-radius:14px;background:#F2F2F4;color:#111;font-size:16px;font-weight:500;text-decoration:none}
+.drvbtns a{background:#111;color:#fff}
+.drvbtns svg{width:18px;height:18px}
+
 /* beta: live sharing */
 .sheet .prow:not(.dayrow){border:0;border-radius:18px;padding:12px 14px 12px 12px;margin:0 0 8px;box-shadow:0 2px 10px rgba(0,0,0,.04)}
 .sheet .prow:not(.dayrow):last-child{margin-bottom:0}
@@ -940,10 +972,10 @@ function timeline(tr,di){
   day.items.forEach((it,i)=>{
     const cls=['stop',i===0?'first':'',i===day.items.length-1?'last':'',it.done?'done':'',it.skipped?'skip':'',(i===nowIdx&&!it.done&&!it.skipped)?'now':''].join(' ');
     const tags=stopTags(tr,it);
-    const map=it.map?`<a href="${mapURL(it.map)}" target="_blank" rel="noopener">${svg(P.pin,'')} ${t('map_btn')}</a>`:'';
+    const map=(it.map||it.local)?`<a href="${mapURL(it.map||it.local||'')}" target="_blank" rel="noopener">${svg(P.pin,'')} ${mapLbl()}</a>`:'';
     if(i>0&&!tr.closed)h+=`<li class="ins"><div></div><div class="rail"><button type="button" data-ins-stop="${di}:${i-1}" aria-label="${t('add_stop')}">${svg(P.plus,'')}</button></div><div></div></li>`;
     h+=`<li class="${cls}" data-id="${it.id}"${!tr.closed&&!it.done&&!it.skipped?' data-mv':''}><div class="t">${esc(it.t)}</div><div class="rail"><div class="dot"></div></div>
-      <div class="card" data-sd="${di}:${it.id}"><div><div class="ttl">${svg(ICO[it.k]||ICO.see)}<span>${esc(it.title)}</span></div>
+      <div class="card" data-sd="${di}:${it.id}"><div><div class="ttl">${svg(ICO[it.k]||ICO.see)}<span>${esc(it.title)}${it.local&&it.local!==it.title?`<small class="loc" lang="zh">${esc(it.local)}</small>`:''}</span></div>
       ${it.d?`<div class="d ${dLine(it.d).length>90?'cl':''}">${esc(dLine(it.d))}</div>`:''}${tags.length?`<div class="tags">${tags.join('')}</div>`:''}
       ${it.doneAt?`<div class="hist">${arrLine(it)}</div>`:''}
       ${it.photos&&it.photos.length?`<div class="shots">${it.photos.map(pid=>`<button data-view-photo="${di}:${it.id}:${pid}"><img data-photo="${pid}" alt=""></button>`).join('')}</div>`:''}
@@ -1082,7 +1114,7 @@ function shareSheet(tr){openSheet(`<h2>${t('share')} · ${esc(tr.name)}</h2>
   <button class="prow" data-share-days="${tr.id}"><span class="pi">${svg(P.photo,'')}</span><span class="pl">${t('share_day')}<div class="h" style="font-size:12px;color:var(--muted)">${t('share_day_h')}</div></span>${svg(P.chev,'')}</button>
   <div class="btns"><button class="btn" data-close>${t('cancel')}</button></div>`)}
 function viewOnlyHTML(tr){const C={bg:'#FBF3E6',card:'#FFFCF6',ink:'#2B211A',ink2:'#594538',muted:'#9A8770',acc:'#CF9A5E',line:'#E6D6BE'};
-  const day=(d,i)=>`<section><h2>${t('day')} ${i+1} · ${esc(fdate(d.date,true))}${dName(d)?' · '+esc(dName(d)):''}</h2>${d.stay?`<p class="m">${t('stay')} ${esc(d.stay)}</p>`:''}${d.recap?`<p class="m">${esc(d.recap)}</p>`:''}<ol>${d.items.filter(x=>!x.skipped).map(it=>`<li><span class="t">${esc(it.t)}</span><div><b>${esc(it.title)}</b>${it.d?`<div class="m">${esc(dLine(it.d))}</div>`:''}${it.cost?`<span class="tag">~${ifmt(tr,it,num(it.cost))}</span>`:''}${it.ref?`<span class="tag g">${esc(it.ref)}</span>`:''}${it.map?` <a href="${mapURL(it.map)}">${t('map_btn')}</a>`:''}</div></li>`).join('')}</ol></section>`;
+  const day=(d,i)=>`<section><h2>${t('day')} ${i+1} · ${esc(fdate(d.date,true))}${dName(d)?' · '+esc(dName(d)):''}</h2>${d.stay?`<p class="m">${t('stay')} ${esc(d.stay)}</p>`:''}${d.recap?`<p class="m">${esc(d.recap)}</p>`:''}<ol>${d.items.filter(x=>!x.skipped).map(it=>`<li><span class="t">${esc(it.t)}</span><div><b>${esc(it.title)}</b>${it.d?`<div class="m">${esc(dLine(it.d))}</div>`:''}${it.cost?`<span class="tag">~${ifmt(tr,it,num(it.cost))}</span>`:''}${it.ref?`<span class="tag g">${esc(it.ref)}</span>`:''}${it.map?` <a href="${mapURL(it.map||it.local||'')}">${mapLbl()}</a>`:''}</div></li>`).join('')}</ol></section>`;
   return `<!doctype html><html lang="${S.lang}"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>${esc(tr.name)} · Crumb</title><link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Prompt:wght@400;500;600&family=Yeseva+One&display=swap"><style>body{margin:0;background:${C.bg};color:${C.ink};font-family:${S.lang==='en'?"'Prompt'":"'Prompt'"},sans-serif;padding:20px 16px 40px;max-width:640px;margin:auto}h1{font-family:'Yeseva One','Prompt',sans-serif;font-weight:500;font-size:30px;margin:0 0 4px}h2{font-family:'Yeseva One','Prompt',sans-serif;font-weight:500;font-size:20px;color:${C.acc};margin:26px 0 6px}.m{color:${C.muted};font-size:14px;margin:2px 0}ol{list-style:none;padding:0;margin:8px 0}li{display:grid;grid-template-columns:52px 1fr;gap:10px;background:${C.card};border:1px solid ${C.line};border-radius:14px;padding:12px;margin-bottom:8px}li .t{color:${C.muted};font-size:13px;padding-top:2px}li b{font-weight:500}.tag{display:inline-block;font-size:12px;background:${C.bg};border:1px solid ${C.line};border-radius:999px;padding:1px 8px;margin:6px 6px 0 0}.tag.g{background:#D9E4D1}a{color:${C.acc};font-size:13px}.hd{background:#E3BD87;border-radius:20px;padding:18px 20px;margin-bottom:6px}.legs{margin:12px 0}.leg{display:flex;justify-content:space-between;background:${C.card};border:1px solid ${C.line};border-radius:12px;padding:10px 14px;margin-bottom:6px;font-size:14px}.foot{color:${C.muted};font-size:12px;text-align:center;margin-top:30px}</style></head><body><div class="hd"><h1>${esc(tr.name)}</h1><div>${esc(frange(tr.start,tr.end))}${tr.dest?' · '+esc(tr.dest):''}</div><div class="m" style="color:${C.ink2}">${t('cities',{n:cities(tr)})} · ${t('days',{n:tr.days.length})} · ${t('people',{n:tr.members||1})}</div></div>${(tr.legs||[]).length?`<div class="legs">${tr.legs.map(l=>`<div class="leg"><b>${esc(l.from)} → ${esc(l.to)}</b><span>${esc(l.code||'')} ${esc(l.dep||'')}</span></div>`).join('')}</div>`:''}${tr.days.map(day).join('')}<p class="foot">Crumb · ${t('share_view')}</p></body></html>`}
 function wrapText(g,text,max){const out=[];for(const para of String(text).split('\n')){let line='';for(const ch of para){const test=line+ch;if(g.measureText(test).width>max&&line){out.push(line);line=ch}else line=test}out.push(line)}return out}
 async function dayJPG(tr,di,share){
@@ -1120,7 +1152,27 @@ async function dayJPG(tr,di,share){
   return blob;
 }
 function rr(g,x,y,w,h,r){g.beginPath();g.moveTo(x+r,y);g.arcTo(x+w,y,x+w,y+h,r);g.arcTo(x+w,y+h,x,y+h,r);g.arcTo(x,y+h,x,y,r);g.arcTo(x,y,x+w,y,r);g.closePath()}
-function mapURL(v){v=String(v||'').trim();if(!v)return '';if(/^(https?:\/\/|maps\.app\.goo\.gl|goo\.gl\/maps|maps\.google\.)/i.test(v))return /^https?:\/\//i.test(v)?v:'https://'+v;if(/^-?\d{1,3}\.\d+\s*,\s*-?\d{1,3}\.\d+$/.test(v))return `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(v.replace(/\s+/g,''))}`;return `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(v)}`}
+function mapURL(v,app){v=String(v||'').trim();if(!v)return '';app=app||mapApp();if(/^(surl\.amap\.com|uri\.amap\.com|www\.amap\.com|amap\.com|maps\.apple\.com|maps\.apple)\b/i.test(v))return 'https://'+v;if(!/^(https?:\/\/|maps\.app\.goo\.gl|goo\.gl\/maps|maps\.google\.)/i.test(v)&&app!=='google'){const ll=/^(-?\d{1,3}\.\d+)\s*,\s*(-?\d{1,3}\.\d+)$/.exec(v);if(app==='apple')return ll?`https://maps.apple.com/?ll=${ll[1]},${ll[2]}&q=${encodeURIComponent(v)}`:`https://maps.apple.com/?q=${encodeURIComponent(v)}`;return ll?`https://uri.amap.com/marker?position=${ll[2]},${ll[1]}`:`https://uri.amap.com/search?keyword=${encodeURIComponent(v)}`}if(/^(https?:\/\/|maps\.app\.goo\.gl|goo\.gl\/maps|maps\.google\.)/i.test(v))return /^https?:\/\//i.test(v)?v:'https://'+v;if(/^-?\d{1,3}\.\d+\s*,\s*-?\d{1,3}\.\d+$/.test(v))return `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(v.replace(/\s+/g,''))}`;return `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(v)}`}
+function mapApp(tr){tr=tr||(S.tripId&&trip(S.tripId));return (tr&&tr.mapApp)||'google'}
+function mapLbl(){return {apple:'Apple Maps',amap:'Amap'}[mapApp()]||t('map_btn')}
+function mapApps(sel){return `<div class="chips" id="f-mapapp">${[['google','Google Maps'],['apple','Apple Maps'],['amap','Amap 高德']].map(([k,l])=>`<button class="${sel===k?'on':''}" data-k="${k}">${l}</button>`).join('')}</div>`}
+function localPhrase(x,tr){const c=(tr&&tr.cur)||'';if(/[぀-ヿ]/.test(x))return ['ここへ行ってください','ช่วยพาไปที่นี่ · Please take me here'];if(/[가-힯]/.test(x))return ['여기로 가 주세요','ช่วยพาไปที่นี่ · Please take me here'];if(c==='HKD')return ['唔該，我想去呢度','ขอไปที่นี่ · I\'d like to go here'];if(c==='TWD')return ['請帶我去這裡','ช่วยพาไปที่นี่ · Please take me here'];return ['请带我去这里','ช่วยพาไปที่นี่ · Please take me here']}
+function mapChip(l,a){return l||a?`<div class="mapchip">${svg(P.check,'')}<span lang="zh"><b>${esc(l||'')}</b>${a?`<small>${esc(a.split(/\n/)[0])}</small>`:''}</span><button type="button" data-mapclr aria-label="clear">${svg(P.x,'')}</button></div>`:''}
+function mapPaste(v){const u=v.match(TPMAPU);if(!u||!/[\u3400-\u9fff]/.test(v))return false;let txt=v.replace(u[0],'').replace(/【[^】]*】/g,'').replace(/\s+/g,' ').trim();const sp=txt.indexOf(' ');const name=sp>0?txt.slice(0,sp):txt;const addr=sp>0?txt.slice(sp+1).trim():'';
+  $('#f-map').value=u[0];$('#f-local').value=name;$('#f-addr').value=addr;$('#f-mapinfo').innerHTML=mapChip(name,addr);if(!$('#f-title').value.trim())$('#f-title').value=name;return true}
+document.addEventListener('input',e=>{if(e.target.id==='f-map'&&$('#f-mapinfo'))mapPaste(e.target.value)});
+document.addEventListener('click',e=>{const b=e.target.closest&&e.target.closest('[data-mapsearch],[data-mapclr]');if(!b||!$('#f-map'))return;e.stopImmediatePropagation();e.preventDefault();
+  if(b.hasAttribute('data-mapclr')){$('#f-local').value='';$('#f-addr').value='';$('#f-mapinfo').innerHTML='';return}
+  const q=$('#f-map').value.trim()&&!/^https?:/i.test($('#f-map').value.trim())?$('#f-map').value.trim():($('#f-title').value.trim());if(!q){toast(t('need_name'));return}window.open(mapURL(q),'_blank','noopener')},true);
+function driverCard(it){const tr=trip(S.tripId);const ph=localPhrase((it.local||'')+(it.addr||''),tr);const url=mapURL(it.map||it.local||it.addr||it.title);const el=document.createElement('div');el.className='drv';
+  el.innerHTML=`<div class="drvin"><div class="drvph" lang="zh">${esc(ph[0])}<small>${esc(ph[1])}</small></div>
+    ${it.addr?(l=>`<div class="drva" lang="zh">${esc(l[0])}</div>${l.slice(1).map(x=>`<div class="drva2">${esc(x)}</div>`).join('')}`)(it.addr.split(/\n+/).map(x=>x.trim()).filter(Boolean)):''}
+    <div class="drvn" lang="zh">${esc(it.local||it.title)}</div><div class="drvt">${esc(it.title)}</div>
+    <div class="drvbtns"><a href="${url}" target="_blank" rel="noopener">${svg(P.pin,'')}${t('drv_open',{a:mapLbl()})}</a>${it.addr||it.local?`<button type="button" data-drvcopy>${svg('M8 8h11v12H8zM5 16V4h11','')}${t(it.addr?'drv_copy_a':'drv_copy_n')}</button>`:''}<button type="button" data-drvclose>${t('drv_close')}</button></div></div>`;
+  el.addEventListener('click',e=>{if(e.target.closest('a'))return;if(e.target.closest('[data-drvcopy]')){e.stopPropagation();(navigator.clipboard?navigator.clipboard.writeText(it.addr||it.local):Promise.reject()).then(()=>toast(t('lv_copied2')),()=>{});return}if(e.target.closest('[data-drvclose]')||e.target===el)el.remove()});document.body.appendChild(el)}
+document.addEventListener('click',e=>{const b=e.target.closest&&e.target.closest('[data-driver],[data-locadd]');if(!b)return;e.stopImmediatePropagation();e.preventDefault();
+  if(b.hasAttribute('data-locadd')){const box=b.nextElementSibling;box.hidden=false;b.remove();box.querySelector('input').focus();return}
+  const [di,id]=b.dataset.driver.split(':');const tr=trip(S.tripId);const it=tr&&tr.days[+di]&&tr.days[+di].items.find(x=>x.id===id);if(it)driverCard(it)},true);
 function cssv(n){return getComputedStyle(document.documentElement).getPropertyValue(n).trim()}
 function newCheckForm(tr){
   openSheet(`<h2>${t('new_check')}</h2><label class="f">${t('check_for')}</label><div class="chips grid2c" id="f-scope"><button class="on" data-k="pre">${t('before')}</button>${tr.days.map((d,i)=>`<button data-k="${i}"><b>${t('day')} ${i+1}</b>${dName(d)?`<small>${esc(dName(d))}</small>`:''}</button>`).join('')}</div>
@@ -1150,7 +1202,7 @@ function renderSet(){
   <div class="set">
     <div class="row"><div><div class="l">${t('export_png')}</div><div class="h">${t('export_h')}</div></div><button class="back" style="margin:0" data-export-png>${svg(P.photo,'')}PNG</button></div>
   </div>
-  <p class="hint">${t('hint')}</p><p class="hint" style="margin-top:10px;text-align:left">Crumb Beta b4 · v3.18</p>`;
+  <p class="hint">${t('hint')}</p><p class="hint" style="margin-top:10px;text-align:left">Crumb Beta b5 · v3.18</p>`;
 }
 function appearanceSheet(){
   const PALS=[['cream','pal_cream','#FFF9F0','#EACB9D','#D6A76F'],['lavender','pal_lav','#F5F0FF','#D0B8F2','#9B82CF'],['teal','pal_teal','#EFF8F5','#B7E1D9','#55ADA2'],['pastel','pal_pastel','#FFF9F0','#FFE6E1','#DFF6EB'],['bright','pal_bright','#58A6FF','#EE6158','#FBE449'],['sunny','pal_sunny','#FFF6C7','#FBE449','#D4A017']];
@@ -1189,6 +1241,7 @@ function tripForm(tr){
     <label class="sw"><span class="l">${t('is_planning')}</span><input id="f-plan" type="checkbox" ${tr.planning?'checked':''}><span class="knob"></span></label>
     <label class="f">${t('members')}</label><input id="f-mem" type="number" min="1" value="${tr.members||1}">
     <label class="f">${t('main_mode')}</label>${modeChips(tr.mode||'fly','f-mainmode')}
+    <label class="f">${t('map_app')}</label>${mapApps(tr.mapApp||'google')}<div class="hint" style="margin-top:4px">${t('map_app_h')}</div>
     <div class="grid2"><div><label class="f">${t('cur')}</label><select id="f-cur">${Object.keys(CUR).map(c=>`<option value="${c}" ${(tr.cur||'THB')===c?'selected':''}>${c}</option>`).join('')}</select></div><div><label class="f">${t('rate')}</label><input id="f-rate" type="number" inputmode="decimal" step="0.0001" min="0" value="${tr.rate||''}" placeholder="0.23"></div></div>
     <label class="f">${t('spend')}</label><input id="f-spend" class="amt" type="text" inputmode="decimal" value="${tr.spendPP?nf(tr.spendPP):''}" placeholder="38,000.00"><div class="hint" style="margin-top:4px">${t('spend_h')}</div>
     <label class="f">${t('cover')}</label><div class="photo"><div class="pv" id="f-pv">${pendingCover?`<img src="${pendingCover}" alt="">`:''}</div><div><label class="up" for="f-photo">${t('pick_photo')}<input id="f-photo" type="file" accept="image/*"></label> ${pendingCover?`<button class="danger" data-rm-photo style="margin-left:8px;font-size:14px">${t('remove')}</button>`:''}</div></div>
@@ -1218,7 +1271,7 @@ function saveTrip(id){
   if(start&&end&&end<start){toast(t('need_date'));return}
   let tr=id?trip(id):null;
   if(!tr){tr={id:uid(),name:'',dest:'',start:'',end:'',members:1,planning:false,cover:'',days:[],checklist:[],stays:[],legs:[]};S.trips.push(tr)}
-  Object.assign(tr,{name,dest,start,end,planning,members,cover:pendingCover||'',mode:$('#f-mainmode .on')?.dataset.k||'fly',spendPP:num($('#f-spend').value)||0,cur:$('#f-cur').value,rate:+$('#f-rate').value||0});
+  Object.assign(tr,{name,dest,start,end,planning,members,cover:pendingCover||'',mode:$('#f-mainmode .on')?.dataset.k||'fly',spendPP:num($('#f-spend').value)||0,cur:$('#f-cur').value,rate:+$('#f-rate').value||0,mapApp:$('#f-mapapp .on')?.dataset.k||'google'});
   if(start&&end){const want=[];for(let d=new Date(start+'T00:00:00');;d.setDate(d.getDate()+1)){const iso=`${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;want.push(iso);if(iso>=end)break;if(want.length>60)break}
     const drop=tr.days.filter(x=>!want.includes(x.date)&&((x.items||[]).length||x.title||x.recap||(x.notes||[]).length));if(drop.length&&!confirm(t('drop_days_q',{n:drop.length}))){return}
     const old=Object.fromEntries(tr.days.map(x=>[x.date,x]));tr.days=want.map(iso=>old[iso]||{date:iso,title:'',area:'',stay:'',recap:'',items:[],notes:[],checks:[]});}
@@ -1230,14 +1283,14 @@ function stopForm(tr,di,it,opt){
   insCtx=isNew&&opt&&opt.at!=null?{di,at:opt.at}:null;if(isNew&&opt&&opt.t)it=Object.assign({},it,{t:opt.t});
   const lab=x=>x?x.title+(x.t?` (${x.t})`:''):'';
   openSheet(`<h2>${isNew?t('add_stop'):t('edit_stop')} · ${t('day')} ${di+1}</h2>${insCtx&&opt.a&&opt.b?`<div class="insh">${esc(t('ins_between',{a:lab(opt.a),b:lab(opt.b)}))}</div>`:''}
-    <label class="f">${t('title')}</label><input id="f-title" value="${esc(it.title)}">
+    <label class="f">${t('title')}</label><input id="f-title" value="${esc(it.title)}"><input type="hidden" id="f-local" value="${esc(it.local||'')}"><input type="hidden" id="f-addr" value="${esc(it.addr||'')}">
     <div class="grid2"><div><label class="f">${t('time')}</label><input id="f-t" class="tm" inputmode="numeric" value="${esc(it.t)}" placeholder="09:30" maxlength="5"></div><div><label class="f">${t('cost_est')}</label><div class="money"><input id="f-cost" class="amt" type="text" inputmode="decimal" value="${it.cost?nf(num(it.cost)):''}" placeholder="1,000.00"><span class="cur" data-curlbl="i">${it.cur==='THB'?'THB':sym(tr)}</span></div></div></div>
     <label class="f">${t('cost_act')}</label><div class="money"><input id="f-actual" class="amt thin" type="text" inputmode="decimal" value="${it.actual!==''&&it.actual!=null?nf(num(it.actual)):''}" placeholder="${t('cost_act_h')}"><span class="cur" data-curlbl="i">${it.cur==='THB'?'THB':sym(tr)}</span></div><div class="csegbox mbox one"><div class="row" id="f-iwho"><button class="${it.each?'on':''}" data-k="each">${t('per_p')}</button><button class="${it.each?'':'on'}" data-k="all">${t('per_g')}</button></div>${(tr.cur||'THB')!=='THB'?`<div class="row" id="f-icur"><button class="${it.cur==='THB'?'on':''}" data-k="THB">THB</button><button class="${it.cur==='THB'?'':'on'}" data-k="trip">${tr.cur}</button></div>`:''}</div>
     <label class="f">${t('detail')}</label><div id="f-steps">${(dEdit(it.d)||'').split('\n').map(stRow).join('')}</div><button type="button" class="stadd" data-st-add>${svg(P.plus,'')}<span>${t('add_step')}</span></button>
     <label class="f">${t('ref')}</label><input id="f-ref" value="${esc(it.ref||'')}">
     <label class="f">${t('bk_note')}</label><input id="f-res" value="${esc(it.res||'')}" placeholder="${t('bk_note_ph')}">${(()=>{const c=it.bk&&tr.checklist.find(x=>x.id===it.bk);return `<div class="hint bkhint">${svg(P.check,'')}${c?`${t('bk_in')} <b>${esc(c.title)}</b>`:t('bk_auto')}</div>`})()}
     <label class="f">${t('kind')}</label>${kindChips(it.k,false)}
-    <label class="f">${t('map')}</label><input id="f-map" value="${esc(it.map||'')}" placeholder="Zenkoji Temple Nagano / https://maps.app.goo.gl/…">
+    <label class="f">${t('map')}</label><div class="mapin"><input id="f-map" value="${esc(it.map||'')}" placeholder="${mapApp(tr)==='amap'?t('map_ph_amap'):'Zenkoji Temple Nagano / https://maps.app.goo.gl/…'}"><button type="button" data-mapsearch>${svg(P.pin,'')}${mapLbl()}</button></div><div id="f-mapinfo">${mapChip(it.local,it.addr)}</div><div class="hint" style="margin-top:4px">${t(mapApp(tr)==='amap'?'map_h_amap':'map_h_other',{a:mapLbl()})}</div>
     <div class="btns">${!isNew?`<button class="btn del" data-del-stop="${di}:${it.id}">${t('delete')}</button>`:''}<button class="btn" data-close>${t('cancel')}</button><button class="btn pri" data-save-stop="${di}:${it.id||''}">${t('save')}</button></div>`);requestAnimationFrame(stFix);
 }
 function bkStops(tr,cid){const out=[];tr.days.forEach((d,di)=>d.items.forEach(it=>{if(it.bk===cid)out.push({di,it})}));return out}
@@ -1274,7 +1327,7 @@ function dEdit(d){return isSteps(d)?sdSteps(d).join('\n'):(d||'')}
 function sdSteps(d){const parts=d.split(/\s*\n+\s*|\s+[·•]\s+/).map(x=>x.trim()).filter(Boolean);return parts}
 function stopDetail(tr,di,it){sdctx={di,id:it.id};const pics=it.pics||[];const tags=stopTags(tr,it);
   const steps=it.d?sdSteps(it.d):[];
-  const map=it.map?`<a class="btn" href="${mapURL(it.map)}" target="_blank" rel="noopener">${svg(P.pin,'')} ${t('map_btn')}</a>`:'';
+  const map=(it.map||it.local)?`<a class="btn" href="${mapURL(it.map||it.local||'')}" target="_blank" rel="noopener">${svg(P.pin,'')} ${mapLbl()}</a>`:'';
   openSheet(`<div class="sdh">${t('day')} ${di+1} · ${esc(it.t)}${it.doneAt?` · ${arrLine(it)}`:''}</div>
     <h2 class="sdttl">${svg(ICO[it.k]||ICO.see)}<span>${esc(it.title)}</span></h2>
     ${isSteps(it.d)?`<ol class="sdsteps">${steps.map(x=>`<li>${esc(x)}</li>`).join('')}</ol>`:it.d?`<div class="sdd">${esc(it.d)}</div>`:''}
@@ -1282,6 +1335,7 @@ function stopDetail(tr,di,it){sdctx={di,id:it.id};const pics=it.pics||[];const t
     <div class="sdsec">${t('pics')}</div>
     ${pics.length?`<div class="sdpics">${pics.map(pid=>`<button data-view-pic="${pid}"><img data-pfull="${pid}" alt=""></button>`).join('')}</div>`:`<div class="hint">${t('pics_none')}</div>`}
     ${tr.closed?'':`<label class="jadd" for="sd-pic">${svg(P.plus,'')}<span>${t('add_pic')}</span><input class="fh" type="file" accept="image/*" multiple id="sd-pic"></label>`}
+    ${it.local||it.addr?`<button type="button" class="drvbtn" data-driver="${di}:${it.id}">${svg('M3 11l2-5h14l2 5v6h-2v2h-3v-2H8v2H5v-2H3zM3 11h18M7 14h.01M17 14h.01','')}<span>${t('drv_btn')}<small lang="zh">${esc(it.local||it.addr)}</small></span></button>`:''}
     <div class="btns">${map}${tr.closed?'':`<button class="btn" data-edit-stop="${di}:${it.id}">${svg(P.edit,'')} ${t('edit')}</button>`}<button class="btn pri" data-close>${t('close')}</button></div>`);
   document.querySelectorAll('img[data-pfull]').forEach(async el=>{const v=await DB.get(el.dataset.pfull);if(v)el.src=v.full;else el.closest('button').remove()});
 }
@@ -1297,7 +1351,7 @@ function stopTags(tr,it){const tags=[];
 function saveStop(tr,di,id){
   const title=$('#f-title').value.trim();const it_cash=id?(tr.days[di].items.find(x=>x.id===id)||{}).cash:false;if(!title){toast(t('need_name'));return}
   const k=$('#f-k .on')?.dataset.k||'see';
-  const v={t:$('#f-t').value.trim(),title,d:[...document.querySelectorAll('#f-steps .stin')].map(x=>x.value.replace(/\s*\n+\s*/g,' ').trim()).filter(Boolean).join('\n'),k,map:$('#f-map').value.trim(),cost:$('#f-cost').value?num($('#f-cost').value):'',actual:$('#f-actual').value?num($('#f-actual').value):'',each:$('#f-iwho .on')?.dataset.k==='each',cur:$('#f-icur .on')?.dataset.k==='THB'?'THB':'trip',cash:!!it_cash,ref:$('#f-ref').value.trim(),res:$('#f-res').value.trim()};
+  const v={t:$('#f-t').value.trim(),title,d:[...document.querySelectorAll('#f-steps .stin')].map(x=>x.value.replace(/\s*\n+\s*/g,' ').trim()).filter(Boolean).join('\n'),k,map:$('#f-map').value.trim(),cost:$('#f-cost').value?num($('#f-cost').value):'',actual:$('#f-actual').value?num($('#f-actual').value):'',each:$('#f-iwho .on')?.dataset.k==='each',cur:$('#f-icur .on')?.dataset.k==='THB'?'THB':'trip',cash:!!it_cash,ref:$('#f-ref').value.trim(),res:$('#f-res').value.trim(),local:($('#f-local')?$('#f-local').value.trim():''),addr:($('#f-addr')?$('#f-addr').value.trim():'')};
   const day=tr.days[di];let nw=null;
   if(id){const old=day.items.find(x=>x.id===id);old.hist=old.hist||[];if(old.t!==v.t&&old.t)old.hist.push({at:new Date().toISOString(),field:'t',from:old.t,to:v.t});if(old.title!==v.title)old.hist.push({at:new Date().toISOString(),field:'title',from:old.title,to:v.title});old.hist=old.hist.slice(-10);Object.assign(old,v)}else{nw=Object.assign({id:uid(),done:false},v);if(insCtx&&insCtx.di===di)day.items.splice(Math.min(insCtx.at,day.items.length),0,nw);else day.items.push(nw)}
   insCtx=null;
@@ -1452,8 +1506,8 @@ function ideaSummary(tr){const ideas=tr.ideas||[];if(!ideas.length)return `<butt
     <div class="ibareas">${areas.map(([a,c])=>`<span>${esc(a)} <em>${c}</em></span>`).join('')}${none?`<span class="nb">${t('area_none')} <em>${none}</em></span>`:''}</div>
     <div class="ibpeek">${ideas.slice(0,3).map(i=>`<span>${svg(ICO[i.k]||ICO.see,'')}${esc(i.title)}</span>`).join('')}${ideas.length>3?`<span class="more">+${ideas.length-3}</span>`:''}</div></button>`}
 function ideaCard(tr,i){const tags=[];if(i.cost)tags.push(`<span class="tag cost">${fmt(tr,num(i.cost))}</span>`);
-  return `<div class="icard" data-idea-edit="${i.id}"><div class="ik">${svg(ICO[i.k]||ICO.see,'')}</div><div class="ib"><div class="ttl">${esc(i.title)}</div>${i.note?`<div class="d">${esc(i.note)}</div>`:''}${tags.length?`<div class="tags">${tags.join('')}</div>`:''}
-    <div class="iacts">${i.map?`<a href="${mapURL(i.map)}" target="_blank" rel="noopener">${svg(P.pin,'')} ${t('map_btn')}</a>`:''}<button class="iplace" data-idea-place="${i.id}">${t('place')}${svg(P.chev,'')}</button></div></div></div>`}
+  return `<div class="icard" data-idea-edit="${i.id}"><div class="ik">${svg(ICO[i.k]||ICO.see,'')}</div><div class="ib"><div class="ttl">${esc(i.title)}${i.local&&i.local!==i.title?`<small class="loc" lang="zh">${esc(i.local)}</small>`:''}</div>${i.note?`<div class="d">${esc(i.note)}</div>`:''}${tags.length?`<div class="tags">${tags.join('')}</div>`:''}
+    <div class="iacts">${(i.map||i.local)?`<a href="${mapURL(i.map||i.local)}" target="_blank" rel="noopener">${svg(P.pin,'')} ${mapLbl()}</a>`:''}<button class="iplace" data-idea-place="${i.id}">${t('place')}${svg(P.chev,'')}</button></div></div></div>`}
 function renderIdeas(tr){const el=$('#s-trips');const ideas=tr.ideas||[];const f=S.ideaArea||'';const areas=tripAreas(tr);
   const cnt=a=>a===''?ideas.length:a==='-'?ideas.filter(i=>!i.area).length:ideas.filter(i=>sameArea(i.area,a)).length;
   const groups=(f===''?[...areas,'-']:[f]).map(a=>{const list=a==='-'?ideas.filter(i=>!i.area):ideas.filter(i=>sameArea(i.area,a));if(!list.length)return '';const ds=a==='-'?[]:areaDays(tr,a);
@@ -1484,7 +1538,7 @@ function placeSheet(tr,i){const hit=i.area?areaDays(tr,i.area):[];const row=(di,
     ${hit.length?`<div class="plbl">${t('place_in',{a:i.area})}</div>${hit.map(di=>row(di,false)).join('')}<div class="plbl">${t('place_other')}</div>${others.map(di=>row(di,true)).join('')}`:`<div class="plbl">${t('place_all')}</div>${others.map(di=>row(di,false)).join('')}`}
     <div class="btns"><button class="btn" data-close>${t('cancel')}</button></div>`)}
 function ideaTo(tr,id,di){const i=(tr.ideas||[]).find(x=>x.id===id);if(!i)return;const tm=$('#p-t')?$('#p-t').value.trim():'';
-  const day=tr.days[di];day.items.push({id:uid(),t:tm,title:i.title,d:i.note||'',k:i.k||'see',map:i.map||'',cost:i.cost||'',done:false});day.items.sort((a,b)=>(tmin(a.t)??1e9)-(tmin(b.t)??1e9));
+  const day=tr.days[di];day.items.push({id:uid(),t:tm,title:i.title,local:i.local||'',addr:i.addr||'',d:i.note||'',k:i.k||'see',map:i.map||'',cost:i.cost||'',done:false});day.items.sort((a,b)=>(tmin(a.t)??1e9)-(tmin(b.t)??1e9));
   tr.ideas=tr.ideas.filter(x=>x.id!==id);save();closeSheet();toast(t('placed',{n:di+1}));render()}
 function ideasNear(tr,di){if(tr.closed)return '';const ideas=(tr.ideas||[]);const ar=areaToks(tr.days[di].area);const list=ideas.filter(i=>ar.some(a=>sameArea(a,i.area)));if(!list.length)return '';
   return `<div class="sec"><h3><span>${t('ideas_near',{a:esc(ar.filter(a=>list.some(i=>sameArea(i.area,a))).join(' · '))})}</span><button class="back" style="margin:0" data-ideas>${t('see_all')}</button></h3><div class="istrip">${list.map(i=>`<button class="ichip" data-idea-quick="${i.id}:${di}">${svg(ICO[i.k]||ICO.see,'')}<span>${esc(i.title)}</span>${svg(P.plus,'')}</button>`).join('')}</div><div class="hint" style="margin-top:6px">${t('ideas_near_h')}</div></div>`}
@@ -1531,8 +1585,12 @@ document.addEventListener('input',e=>{if(e.target.id==='i-map'){const n=ideaTitl
 // ---------- v3.6 costs: legs / stays / stops / extras ----------
 Object.assign(I.th,{ins_between:'แทรกระหว่าง {a} และ {b}',mv:'ย้าย {x} แล้ว',mv_t:'ย้าย {x} แล้ว · เวลาเป็น {t}',undo_mv:'เลิกทำ',drag_h:'กดค้างที่เวลาแล้วลาก เพื่อสลับลำดับ'});
 Object.assign(I.en,{ins_between:'Between {a} and {b}',mv:'Moved {x}',mv_t:'Moved {x} · now {t}',undo_mv:'Undo',drag_h:'Press and hold a time, then drag to reorder'});
+Object.assign(I.th,{map_app:'แอปแผนที่',map_app_h:'ปุ่มแผนที่ในทริปนี้จะเปิดแอปที่เลือก · ไปจีนเลือก Apple Maps หรือ Amap (Google Maps ใช้ไม่ได้ถ้าไม่มี VPN)',fi_l_amap_s:'ที่เที่ยวในจีน',fi_l_trip_s:'รีวิว ตั๋ว ที่พัก',fi_l_xhs:'小红书 RED',fi_l_xhs_s:'รีวิวจากคนจีน'});
+Object.assign(I.en,{map_app:'Map app',map_app_h:'Map buttons in this trip open this app · For China pick Apple Maps or Amap (Google Maps needs a VPN there)',fi_l_amap_s:'Sights in China',fi_l_trip_s:'Reviews, tickets, stays',fi_l_xhs:'Xiaohongshu RED',fi_l_xhs_s:'Local reviews'});
 Object.assign(I.th,{lv_row:'แก้แพลนด้วยกัน',lv_row_h:'เพื่อนที่มี Crumb แก้ทริปนี้ได้พร้อมกัน เห็นทันทีทุกเครื่อง',lv_row_on:'แชร์อยู่ · แก้ด้วยกัน',lv_row_on_h:'ดูลิงก์ สมาชิก หรือหยุดแชร์',lv_new:'ใหม่',lv_files:'ส่งเป็นไฟล์ (สำเนาแยก แก้แล้วไม่ถึงกัน)',lv_start_h:'ทริปนี้จะซิงก์ผ่านอินเทอร์เน็ต ใครเปิดลิงก์ใน Crumb Beta ก็เข้ามาแก้ได้ทันที',lv_shared:'เห็นตรงกันทุกเครื่อง',lv_s1:'วัน จุดแวะ เวลา รายละเอียด ลำดับ',lv_s2:'การเดินทาง ที่พัก ค่าใช้จ่าย',lv_s3:'กระเป๋าไอเดีย · เช็คลิสต์',lv_s4:'ติ๊กถึงแล้ว / ปัดข้าม ระหว่างเที่ยว',lv_mine:'เก็บไว้ในเครื่องคุณ',lv_m1:'รูปและบันทึก Journal · ภาพประกอบจุดแวะ · ภาพปก',lv_m2:'โทนสี ธีม และภาษา',lv_name:'ชื่อที่เพื่อนจะเห็น',lv_name_ph:'เช่น Tida',lv_trust:'ใครมีลิงก์ก็แก้ได้ ส่งเฉพาะในกลุ่มที่ไว้ใจ · ไม่มีเน็ตก็ยังแก้ได้ จะส่งขึ้นเองเมื่อกลับมาออนไลน์',lv_start:'เริ่มแชร์',lv_on:'แชร์อยู่',lv_ok0:'ซิงก์แล้ว',lv_off0:'ออฟไลน์',lv_wait:'กำลังซิงก์…',lv_ok:'ซิงก์แล้ว · แก้ด้วยกัน {n} คน',lv_off:'ออฟไลน์ · จะส่งเมื่อมีเน็ต',lv_copy:'คัดลอกลิงก์',lv_send:'ส่งต่อ (LINE ฯลฯ)',lv_copied:'คัดลอกลิงก์แล้ว',lv_members:'สมาชิก {n} คน',lv_you:'คุณ',lv_owner:'เจ้าของทริป',lv_someone:'เพื่อน',lv_now:'เมื่อสักครู่',lv_min:'{n} นาทีที่แล้ว',lv_hr:'{n} ชม. ที่แล้ว',lv_day:'{n} วันที่แล้ว',lv_stop:'หยุดแชร์',lv_stop_h:'ทริปกลับเป็นของคุณคนเดียว เพื่อนเก็บสำเนาล่าสุดไว้ดูได้',lv_stop_q:'หยุดแชร์ทริปนี้? เพื่อนจะแก้ต่อไม่ได้ แต่ยังมีสำเนาล่าสุดในเครื่อง',lv_leave:'ออกจากทริป',lv_leave_h:'เก็บสำเนาล่าสุดไว้ในเครื่อง แต่จะไม่ซิงก์อีก',lv_leave_q:'ออกจากทริปนี้? สำเนาล่าสุดยังอยู่ในเครื่องคุณ',lv_stopped:'ทริปนี้หยุดแชร์แล้ว · สำเนาล่าสุดยังอยู่ในเครื่อง',lv_stopped_me:'หยุดแชร์แล้ว',lv_left:'ออกจากทริปแล้ว',lv_join_t:'เข้าร่วมแพลนด้วยกัน',lv_ask_h:'ใส่รหัส 6 ตัวที่เพื่อนส่งมา หรือวางลิงก์ชวน',lv_next:'ต่อไป',lv_bad:'ลิงก์นี้ไม่ใช่ลิงก์ชวนของ Crumb',lv_404:'ไม่พบทริปนี้ หรือหยุดแชร์ไปแล้ว',lv_inv:'{n} ชวนคุณเข้าร่วม',lv_nstops:'{n} จุดแวะ',lv_j1:'ทริปนี้จะอยู่ในแท็บทริปของคุณ แก้อะไรทุกคนเห็นทันที',lv_j2:'รูปและบันทึก Journal ของคุณไม่ถูกแชร์',lv_j3:'ออกจากทริปได้ทุกเมื่อ',lv_later:'ไม่ตอนนี้',lv_join:'เข้าร่วม',lv_joined:'เข้าร่วมแล้ว',lv_need_name:'ใส่ชื่อก่อนนะ',lv_err_net:'ต่ออินเทอร์เน็ตไม่ได้ ลองใหม่อีกครั้ง',lv_err_perm:'เซิร์ฟเวอร์ไม่อนุญาต — เช็กกฎ Firestore',lv_ed:'{n} แก้แพลน',lv_ed_day:'{n} แก้ วัน {d}',lv_share_txt:'มาวางแผน {n} ด้วยกันใน Crumb',lv_code:'รหัสเข้าร่วม',lv_copy_c:'คัดลอกรหัส',lv_code_h:'เพื่อนเปิด Crumb Beta แล้วกด "เข้าร่วม" ในแท็บทริป พิมพ์รหัสนี้ได้เลย',lv_paste:'วางลิงก์หรือรหัสที่คัดลอกไว้',lv_paste_no:'วางไม่ได้ — กดค้างในช่องแล้วเลือก วาง',lv_code_404:'ไม่พบรหัสนี้ หรือหยุดแชร์ไปแล้ว',lv_inapp:'มี Crumb Beta บนหน้าจอโฮมไหม?',lv_inapp_h:'เปิดแอปนั้น → แท็บทริป → เข้าร่วม แล้วใส่รหัสนี้ ทริปจะอยู่ในแอปของคุณ',lv_inapp_or:'หรือเข้าร่วมในเบราว์เซอร์นี้เลยก็ได้ (แนะนำ Safari)',lv_join_btn:'เข้าร่วม',lv_join_btn2:'เข้าร่วมด้วยรหัส'});
 Object.assign(I.en,{lv_row:'Plan together',lv_row_h:'Friends with Crumb edit this trip at the same time, live on every phone',lv_row_on:'Shared · planning together',lv_row_on_h:'Link, members or stop sharing',lv_new:'New',lv_files:'Send as a file (separate copy, edits don\'t sync)',lv_start_h:'This trip will sync over the internet. Anyone who opens the link in Crumb Beta can edit right away',lv_shared:'Same on every phone',lv_s1:'Days, stops, times, details, order',lv_s2:'Transport, stays, costs',lv_s3:'Idea bag · checklist',lv_s4:'Arrived ticks / skips during the trip',lv_mine:'Stays on your phone',lv_m1:'Journal photos & notes · reference photos · cover',lv_m2:'Palette, theme and language',lv_name:'Name friends will see',lv_name_ph:'e.g. Tida',lv_trust:'Anyone with the link can edit — share it only with people you trust · Works offline and syncs when you\'re back online',lv_start:'Start sharing',lv_on:'Shared',lv_ok0:'Synced',lv_off0:'Offline',lv_wait:'Syncing…',lv_ok:'Synced · {n} planning',lv_off:'Offline · will sync later',lv_copy:'Copy link',lv_send:'Send (LINE etc.)',lv_copied:'Link copied',lv_members:'{n} member(s)',lv_you:'You',lv_owner:'Trip owner',lv_someone:'A friend',lv_now:'just now',lv_min:'{n} min ago',lv_hr:'{n} h ago',lv_day:'{n} days ago',lv_stop:'Stop sharing',lv_stop_h:'The trip becomes yours only; friends keep their latest copy',lv_stop_q:'Stop sharing this trip? Friends can\'t edit any more but keep their latest copy',lv_leave:'Leave trip',lv_leave_h:'Keeps your latest copy but stops syncing',lv_leave_q:'Leave this trip? Your latest copy stays on this phone',lv_stopped:'This trip is no longer shared · your latest copy is kept',lv_stopped_me:'Sharing stopped',lv_left:'Left the trip',lv_join_t:'Join a shared plan',lv_ask_h:'Enter the 6-character code from your friend, or paste the invite link',lv_next:'Next',lv_bad:'That isn\'t a Crumb invite link',lv_404:'Trip not found or no longer shared',lv_inv:'{n} invited you',lv_nstops:'{n} stops',lv_j1:'The trip appears in your Trips tab; every edit shows for everyone',lv_j2:'Your journal photos & notes aren\'t shared',lv_j3:'Leave any time',lv_later:'Not now',lv_join:'Join',lv_joined:'Joined',lv_need_name:'Add your name first',lv_err_net:'Can\'t reach the internet — try again',lv_err_perm:'Server refused — check the Firestore rules',lv_ed:'{n} edited the plan',lv_ed_day:'{n} edited Day {d}',lv_share_txt:'Plan {n} together in Crumb',lv_code:'Join code',lv_copy_c:'Copy code',lv_code_h:'Friends open Crumb Beta, tap Join on the Trips tab and type this code',lv_paste:'Paste a copied link or code',lv_paste_no:'Couldn\'t paste — long-press the box and choose Paste',lv_code_404:'Code not found or no longer shared',lv_inapp:'Have Crumb Beta on your home screen?',lv_inapp_h:'Open it → Trips → Join and enter this code so the trip lives in your app',lv_inapp_or:'Or join right here in this browser (Safari recommended)',lv_join_btn:'Join',lv_join_btn2:'Join with a code'});
+Object.assign(I.th,{loc_n:'ชื่อภาษาท้องถิ่น',loc_a:'ที่อยู่ภาษาท้องถิ่น',loc_h:'ใช้ค้นในแผนที่และโชว์ให้คนขับดู · ที่อยู่ใส่ได้ 2 บรรทัด ภาษาท้องถิ่นและอังกฤษ',loc_add:'ชื่อ / ที่อยู่ภาษาท้องถิ่น',drv_btn:'โชว์ให้คนขับดู',map_ph_amap:'วางลิงก์ที่แชร์จาก Amap หรือพิมพ์ชื่อสถานที่',map_h_amap:'กดปุ่ม Amap → หาสถานที่ → แชร์ → คัดลอก แล้วกลับมาวางที่นี่ ชื่อจีนและที่อยู่จะเติมให้เอง ใช้กับปุ่มโชว์ให้คนขับดู',map_h_other:'พิมพ์ชื่อสถานที่ หรือวางลิงก์ที่แชร์จาก {a}',drv_close:'ปิด',drv_open:'เปิดใน {a}',drv_copy_a:'คัดลอกที่อยู่',drv_copy_n:'คัดลอกชื่อ',lv_copied2:'คัดลอกแล้ว'});
+Object.assign(I.en,{loc_n:'Local name',loc_a:'Local address',loc_h:'Used for map search and to show drivers · the address can hold two lines, local language and English',loc_add:'Local name / address',drv_btn:'Show the driver',map_ph_amap:'Paste a link shared from Amap, or type a place name',map_h_amap:'Tap Amap → find the place → Share → Copy, then paste here. The Chinese name and address fill in for the driver card',map_h_other:'Type a place name or paste a link shared from {a}',drv_close:'Close',drv_open:'Open in {a}',drv_copy_a:'Copy address',drv_copy_n:'Copy name',lv_copied2:'Copied'});
 Object.assign(I.th,{fi_btn:'หาไอเดีย',fi_t:'หาไอเดียเที่ยว',fi_h:'ยังไม่รู้จะไปไหนดี? ลองหาจากเว็บหรือให้ AI แนะนำ แล้ววางรายชื่อรวมกันทีเดียว แอปจะแยกเป็นไอเดียตามย่านให้',fi_city:'เมือง / จุดหมาย',fi_s1:'ค้นในเว็บ',fi_s1_h:'เปิดผลค้นหาของเมืองนี้ เจอที่ชอบให้คัดลอกชื่อหรือลิงก์ไว้หลาย ๆ ที่ แล้วกลับมาวางในข้อ 3 ทีเดียว',fi_l_maps:'Google Maps',fi_l_maps_s:'ที่เที่ยวยอดนิยม',fi_l_blog:'บล็อกรีวิว',fi_l_blog_s:'Google ภาษาไทย',fi_l_yt:'YouTube',fi_l_yt_s:'vlog เที่ยว',fi_l_ta:'Tripadvisor',fi_l_ta_s:'Things to do',fi_s2:'ให้ AI แนะนำ',fi_s2_h:'เลือกสิ่งที่สนใจ คัดลอกพรอมต์ไปถาม ChatGPT, Gemini หรือ Claude แล้วคัดลอกคำตอบทั้งหมดกลับมาวางในข้อ 3',fi_i_food:'ของกิน',fi_i_cafe:'คาเฟ่',fi_i_sight:'วัด / ประวัติศาสตร์',fi_i_shop:'ช้อปปิ้ง',fi_i_nature:'ธรรมชาติ',fi_i_night:'วิวกลางคืน',fi_i_museum:'พิพิธภัณฑ์',fi_i_kids:'เด็ก / ครอบครัว',fi_s3:'วางรายชื่อ',fi_s3_h:'วางคำตอบจาก AI รายชื่อจากบล็อก (บรรทัดละที่) หรือลิงก์ Google Maps หลายอันรวมกันได้',fi_ph:'ย่าน: The Bund\n- The Bund — วิวริมแม่น้ำ · หัวค่ำ\n- Nanjing Road — ถนนช้อปปิ้ง\nhttps://maps.app.goo.gl/…',fi_sum:'พบ {n} ไอเดีย · {a} ย่าน',fi_x_h:'แตะ × เพื่อเอาที่ไม่สนใจออก ไอเดียจะเข้ากระเป๋าตามย่าน แล้วค่อยย้ายลงวันทีหลัง',fi_dup:'มีในกระเป๋าแล้ว',fi_go:'เพิ่ม {n} ไอเดีย',fi_done:'เพิ่ม {n} ไอเดียเข้ากระเป๋าแล้ว',fi_none:'ยังไม่เจอไอเดีย — ลองวางเป็นบรรทัดละที่',fi_noname:'สถานที่จาก Google Maps'});
 Object.assign(I.en,{fi_btn:'Find ideas',fi_t:'Find ideas',fi_h:'No idea where to go yet? Browse the web or ask an AI, then paste everything back at once — Crumb sorts it into ideas by area.',fi_city:'City / destination',fi_s1:'Search the web',fi_s1_h:'Opens results for this city. Copy the names or links you like, then paste them all into step 3 in one go',fi_l_maps:'Google Maps',fi_l_maps_s:'Top sights',fi_l_blog:'Blogs',fi_l_blog_s:'Itinerary posts',fi_l_yt:'YouTube',fi_l_yt_s:'Travel vlogs',fi_l_ta:'Tripadvisor',fi_l_ta_s:'Things to do',fi_s2:'Ask an AI',fi_s2_h:'Pick what you like, copy the prompt into ChatGPT, Gemini or Claude, then paste the whole answer into step 3',fi_i_food:'Food',fi_i_cafe:'Cafés',fi_i_sight:'Temples & history',fi_i_shop:'Shopping',fi_i_nature:'Nature',fi_i_night:'Night views',fi_i_museum:'Museums',fi_i_kids:'Kids & family',fi_s3:'Paste a list',fi_s3_h:'Paste an AI answer, a list from a blog (one place per line) or several Google Maps links together',fi_ph:'Area: The Bund\n- The Bund — riverside views · evening\n- Nanjing Road — shopping street\nhttps://maps.app.goo.gl/…',fi_sum:'{n} ideas · {a} areas',fi_x_h:'Tap × to drop what you don\'t fancy. Ideas go into the bag by area — place them on days later',fi_dup:'Already in the bag',fi_go:'Add {n} ideas',fi_done:'Added {n} ideas to the bag',fi_none:'No ideas found — try one place per line',fi_noname:'Place from Google Maps'});
 Object.assign(I.th,{tp_t:'วางแผนจากข้อความ',tp_link:'วางจากข้อความ',tp_add:'จากข้อความ',tp_h:'วางแผนที่มีอยู่แล้ว เช่น บล็อก โปรแกรมทัวร์ แชต LINE โน้ต หรือคำตอบจาก AI — บรรทัด "วันที่ 1 / Day 1" จะเป็นวัน และบรรทัดที่ขึ้นต้นด้วยเวลาจะเป็นจุดแวะ',tp_ph:'วันที่ 1 · 17 ต.ค.\nที่พัก: Wakata Lodge\n07:30 ถึงสนามบินนาริตะ — ผ่าน ตม.\n09:07 Skyliner ไปอุเอโนะ\nค่าใช้จ่าย: 2,580 JPY',tp_ai:'ใช้ ChatGPT, Gemini หรือ Claude อยู่แล้ว? คัดลอกพรอมต์นี้ไปพร้อมแผนของคุณ แล้ววางคำตอบกลับมาที่นี่ จะได้ค่าใช้จ่าย เลขจอง และขั้นตอนครบกว่า',tp_copy:'คัดลอกพรอมต์',tp_copied:'คัดลอกพรอมต์แล้ว',tp_read:'ดูตัวอย่าง',tp_empty:'วางข้อความก่อนนะ',tp_none:'ยังไม่เจอจุดแวะ — ลองใส่บรรทัด "วันที่ 1" และขึ้นต้นจุดแวะด้วยเวลา เช่น 09:30',tp_check:'ตรวจก่อนนำเข้า',tp_sum:'พบ {d} วัน · {s} จุดแวะ',tp_x_h:'แตะ × เพื่อเอาจุดที่ไม่ต้องการออก ที่เหลือแก้ได้หลังนำเข้า',tp_start:'วันแรกของแพลน',tp_start_h:'ข้อความไม่ได้ระบุวันที่ — เลือกวันแรก แล้ววันถัดไปจะเรียงต่อให้',tp_by_date:'ใช้วันที่ตามข้อความ',tp_into:'เพิ่มเข้า {n}',tp_from:'เริ่มลงที่',tp_merge_h:'จุดแวะจะต่อเข้าวันเดียวกันและเรียงตามเวลา ข้อมูลวันที่มีอยู่แล้วไม่ถูกเขียนทับ',tp_new_day:'วันใหม่',tp_noit:'ไม่มีจุดแวะ',tp_skip:'ไม่ได้นำเข้า {n} บรรทัด',tp_back:'แก้ข้อความ',tp_go:'นำเข้า',tp_done:'นำเข้า {d} วัน {s} จุดแวะแล้ว',tp_until:'ถึง {t}',tp_nst:'{n} จุดแวะ',tp_need_d:'เลือกวันแรกของแพลนก่อน',auto_day_h:'เว้นว่างไว้ แอปจะตั้งชื่อให้จากจุดแวะของวันนั้น'});
@@ -1935,8 +1993,10 @@ document.addEventListener('input',e=>{const id=e.target&&e.target.id;
 let fiCtx=null;
 const FIINT=['food','cafe','sight','shop','nature','night','museum','kids'];
 function fiCity(tr){const d=areaToks(tr.dest||'');return d[0]||tripAreas(tr)[0]||tr.name||''}
-function fiLinks(city){const q=encodeURIComponent,th=S.lang==='th';const L=[
-  ['google.com/maps',`https://www.google.com/maps/search/?api=1&query=${q((th?'ที่เที่ยว ':'things to do in ')+city)}`,P.pin,t('fi_l_maps'),t('fi_l_maps_s')],
+function fiLinks(city){const q=encodeURIComponent,th=S.lang==='th';const app=mapApp();
+  if(app==='amap')return [[`https://uri.amap.com/search?keyword=${q(city+' 景点')}`,P.pin,'Amap 高德',t('fi_l_amap_s')],[`https://www.trip.com/global-search/searchlist/search?keyword=${q(city)}`,'M4 7h16v12H4zM9 7V5h6v2',  'Trip.com',t('fi_l_trip_s')],[`https://www.xiaohongshu.com/search_result?keyword=${q(city+' 攻略')}`,'M5 4h14v16H5zM8 8h8M8 12h8M8 16h5',t('fi_l_xhs'),t('fi_l_xhs_s')],[`https://www.youtube.com/results?search_query=${q(th?`เที่ยว ${city}`:`${city} travel guide`)}`,'M3 7a3 3 0 0 1 3-3h12a3 3 0 0 1 3 3v10a3 3 0 0 1-3 3H6a3 3 0 0 1-3-3zM10 9l5 3-5 3z',t('fi_l_yt'),t('fi_l_yt_s')]].map(x=>`<a href="${x[0]}" target="_blank" rel="noopener">${svg(x[1],'')}<span>${x[2]}<small>${x[3]}</small></span></a>`).join('');
+  const L=[
+  app==='apple'?['apple',`https://maps.apple.com/?q=${q((th?'ที่เที่ยว ':'things to do ')+city)}`,P.pin,'Apple Maps',t('fi_l_maps_s')]:['google.com/maps',`https://www.google.com/maps/search/?api=1&query=${q((th?'ที่เที่ยว ':'things to do in ')+city)}`,P.pin,t('fi_l_maps'),t('fi_l_maps_s')],
   ['blog',`https://www.google.com/search?q=${q(th?`เที่ยว ${city} รีวิว บล็อก`:`${city} itinerary blog`)}`,'M5 4h14v16H5zM8 8h8M8 12h8M8 16h5',t('fi_l_blog'),t('fi_l_blog_s')],
   ['youtube',`https://www.youtube.com/results?search_query=${q(th?`เที่ยว ${city}`:`${city} travel guide`)}`,'M3 7a3 3 0 0 1 3-3h12a3 3 0 0 1 3 3v10a3 3 0 0 1-3 3H6a3 3 0 0 1-3-3zM10 9l5 3-5 3z',t('fi_l_yt'),t('fi_l_yt_s')],
   ['tripadvisor',`https://www.tripadvisor.com/Search?q=${q(city+' things to do')}`,'M12 3l2.6 5.6 6.1.7-4.5 4.2 1.2 6L12 16.6 6.6 19.5l1.2-6L3.3 9.3l6.1-.7z',t('fi_l_ta'),t('fi_l_ta_s')]];
@@ -1953,7 +2013,7 @@ function fiPrompt(tr,city){const th=S.lang==='th';const ints=(S.fiInt||[]).map(k
 ช่วยแนะนำที่เที่ยว ร้านอาหาร และคาเฟ่ที่น่าไปประมาณ 20–30 แห่ง จัดกลุ่มตามย่าน ตอบเป็นข้อความธรรมดาในรูปแบบนี้เท่านั้น (ไม่ใช้ตาราง ไม่ใช้ตัวหนา ไม่ต้องจัดเป็นตารางรายวัน):
 
 ย่าน: ชื่อย่าน
-- ชื่อสถานที่ (ชื่อที่ค้นใน Google Maps เจอ) — ทำไมน่าไปสั้น ๆ · ช่วงเวลาที่เหมาะ · ค่าเข้าโดยประมาณ เช่น 50 CNY (ถ้ามี)
+- ชื่อสถานที่ (ชื่อภาษาท้องถิ่น) เช่น Yu Garden (豫园) — ทำไมน่าไปสั้น ๆ · ช่วงเวลาที่เหมาะ · ค่าเข้าโดยประมาณ เช่น 50 CNY (ถ้ามี)
 - ...
 
 ย่าน: ...
@@ -1961,7 +2021,7 @@ function fiPrompt(tr,city){const th=S.lang==='th';const ints=(S.fiInt||[]).map(k
 Suggest about 20–30 places, restaurants and cafés worth visiting, grouped by neighbourhood. Reply in plain text using exactly this format (no tables, no bold, no day-by-day schedule):
 
 Area: neighbourhood name
-- Place name (as it appears on Google Maps) — why it's worth it · best time · approx. entry fee e.g. 50 CNY (if any)
+- Place name (local-language name) e.g. Yu Garden (豫园) — why it's worth it · best time · approx. entry fee e.g. 50 CNY (if any)
 - ...
 
 Area: ...
@@ -1969,28 +2029,28 @@ Area: ...
 function fiParse(text,defArea){const out={ideas:[],skip:[]};let area=defArea||'',last=null;const lines=String(text||'').replace(/\r/g,'').split('\n');
   const isB=l=>/^\s*(?:[-*•·▪►>✓✔→]+|\(?\d{1,2}[.)](?![\d:]))\s*/.test(l);const anyB=lines.some(l=>l.trim()&&isB(l));
   const fromURL=u=>(typeof ideaTitleFromURL==='function'&&ideaTitleFromURL(u))||t('fi_noname');
-  for(const raw of lines){const ind=/^\s{2,}/.test(raw);let L=raw.replace(/`/g,'').replace(/\s+/g,' ').trim();if(!L||/^[-=_*~·•.]{3,}$/.test(L))continue;let m;
+  for(const raw of lines){const ind=/^\s{2,}/.test(raw);let L=raw.replace(/【[^】]*】/g,'').replace(/`/g,'').replace(/\s+/g,' ').trim();if(!L||/^[-=_*~·•.]{3,}$/.test(L))continue;let m;
     const head=/^#+\s*/.test(L)||/^\*\*[^*]+\*\*:?$/.test(L)||/^__[^_]+__:?$/.test(L);L=L.replace(/^#+\s*/,'').replace(/\*\*|__/g,'').trim();
     if((m=/^(?:ย่าน|พื้นที่|เขต|โซน|area|district|neighbou?rhood|zone)\s*[:：]\s*(.+)$/i.exec(L))){area=tpClean(m[1]);last=null;continue}
     const bul=isB(L);const B=bul?L.replace(/^(?:[-*•·▪►>✓✔→]+|\(?\d{1,2}[.)](?![\d:]))\s*/,'').trim():L;
     if(!bul&&(head||(/[:：]$/.test(L)&&L.length<=40))){area=tpClean(L.replace(/[:：]$/,''));last=null;continue}
     const u=B.match(TPMAPU);const rest=u?B.replace(u[0],'').trim():B;
     if(u&&rest.length<3){if(last&&!last.map){last.map=u[0]}else{last={title:fromURL(u[0]),note:'',map:u[0],area};out.ideas.push(last)}continue}
-    if(anyB&&!bul){if(last&&ind){last.note=[last.note,B].filter(Boolean).join(' · ');continue}out.skip.push(B);continue}
+    if(anyB&&!bul&&!u){if(last&&ind){last.note=[last.note,B].filter(Boolean).join(' · ');continue}out.skip.push(B);continue}
     const sp=/\s+[—–-]\s+|\s*[:：|]\s+/.exec(rest);let title=rest,note='';if(sp&&sp.index>0){title=rest.slice(0,sp.index);note=rest.slice(sp.index+sp[0].length).trim()}
-    title=tpClean(title);if(!title){out.skip.push(B);continue}
-    last={title,note,map:u?u[0]:'',area};out.ideas.push(last)}
+    title=tpClean(title);if(!title){out.skip.push(B);continue}{const ad=/^(\S+)\s+(\S*[省市区县路街道号]\S*.*)$/.exec(title);if(ad&&!note&&/[\u4e00-\u9fff]/.test(ad[2])){title=ad[1];note=ad[2]}}
+    last={title,note,map:u?u[0]:'',area};{const cj=/^(.*?)\s*[(（]\s*([^()（）]*[぀-ヿ㐀-鿿가-힯][^()（）]*)\s*[)）]\s*$/.exec(title);if(cj&&cj[1]){last.title=cj[1].trim();last.local=cj[2].trim()}else if(/^[㐀-鿿]/.test(title)){last.local=title;if(/[省市区县路街道号]/.test(note)){last.addr=note;last.note=''}}}out.ideas.push(last)}
   out.ideas.forEach(i=>{i.k=tpKind(i.title);if(i.k==='see'&&i.note)i.k=tpKind(i.note);const mo=/[¥฿$€£₩]|\d\s?(?:jpy|thb|usd|eur|krw|twd|hkd|sgd|cny|rmb|หยวน|เยน|บาท|yen|baht|yuan)/i.test(i.note)?tpMoney(i.note.replace(/rmb|yuan/ig,'CNY')):null;i.cost=mo&&mo.cur?mo:null});
   return out}
 function fiPreview(){const c=fiCtx,tr=trip(c.tid),p=c.p;const have=new Set((tr.ideas||[]).map(i=>i.title.toLowerCase()));const groups=new Map();p.ideas.forEach((i,ix)=>{i.dup=have.has(i.title.toLowerCase());const k=i.area||'';if(!groups.has(k))groups.set(k,[]);groups.get(k).push([i,ix])});
   const n=p.ideas.filter(i=>!i.dup).length,na=[...groups.keys()].filter(Boolean).length;
   openSheet(`<div id="fi"><h2>${t('tp_check')}</h2><div class="tpsum">${svg(P.check,'')}${t('fi_sum',{n,a:na})}</div><div class="hint" style="margin:6px 0 2px">${t('fi_x_h')}</div>
-    ${[...groups.entries()].map(([a,list])=>`<div class="tiarea">${a?esc(a):t('area_none')}<span>${list.length}</span></div>${list.map(([i,ix])=>`<div class="tirow ${i.dup?'dup':''}">${svg(ICO[i.k]||ICO.see)}<div><b>${esc(i.title)}</b>${i.note?`<small>${esc(i.note)}</small>`:''}${i.cost||i.map||i.dup?`<div class="tags">${i.cost?`<span class="tag cost">~${nf(i.cost.v)} ${esc(i.cost.cur)}</span>`:''}${i.map?`<span class="tag">${S.lang==='th'?'แผนที่':'Map'}</span>`:''}${i.dup?`<span class="tag">${t('fi_dup')}</span>`:''}</div>`:''}</div><button type="button" class="tpx" data-fi-x="${ix}" aria-label="remove">${svg(P.x,'')}</button></div>`).join('')}`).join('')}
+    ${[...groups.entries()].map(([a,list])=>`<div class="tiarea">${a?esc(a):t('area_none')}<span>${list.length}</span></div>${list.map(([i,ix])=>`<div class="tirow ${i.dup?'dup':''}">${svg(ICO[i.k]||ICO.see)}<div><b>${esc(i.title)}${i.local&&i.local!==i.title?` <span class="locin" lang="zh">${esc(i.local)}</span>`:''}</b>${i.addr?`<small lang="zh">${esc(i.addr)}</small>`:''}${i.note?`<small>${esc(i.note)}</small>`:''}${i.cost||i.map||i.dup?`<div class="tags">${i.cost?`<span class="tag cost">~${nf(i.cost.v)} ${esc(i.cost.cur)}</span>`:''}${i.map?`<span class="tag">${/^https?:/i.test(i.map)?mapSrc(i.map):(S.lang==='th'?'แผนที่':'Map')}</span>`:''}${i.dup?`<span class="tag">${t('fi_dup')}</span>`:''}</div>`:''}</div><button type="button" class="tpx" data-fi-x="${ix}" aria-label="remove">${svg(P.x,'')}</button></div>`).join('')}`).join('')}
     ${p.skip.length?`<details class="tpskip"><summary>${t('tp_skip',{n:p.skip.length})}</summary><div>${esc(p.skip.join('\n'))}</div></details>`:''}
     <div class="btns"><button class="btn" data-fi-back>${t('tp_back')}</button><button class="btn pri" data-fi-go>${t('fi_go',{n})}</button></div></div>`)}
 function fiRead(){if(!fiCtx)return;const a=$('#fi-city'),b=$('#fi-text');if(a)fiCtx.city=a.value.trim();if(b)fiCtx.text=b.value}
 function fiApply(){const c=fiCtx,tr=trip(c.tid);const add=c.p.ideas.filter(i=>!i.dup);if(!add.length){toast(t('fi_none'));return}
-  tr.ideas=tr.ideas||[];add.forEach(i=>{const o={id:uid(),title:i.title,map:i.map||'',area:i.area||'',k:i.k||'see',cost:'',note:i.note||''};if(i.cost&&i.cost.cur===(tr.cur||'THB'))o.cost=i.cost.v;tr.ideas.push(o)});
+  tr.ideas=tr.ideas||[];add.forEach(i=>{const o={id:uid(),title:i.title,local:i.local||'',addr:i.addr||'',map:i.map||'',area:i.area||'',k:i.k||'see',cost:'',note:i.note||''};if(i.cost&&i.cost.cur===(tr.cur||'THB'))o.cost=i.cost.v;tr.ideas.push(o)});
   fiCtx=null;delete S.fiDraft;S.ideaView=true;S.ideaArea='';S.dayView=null;save();closeSheet();go('trips');toast(t('fi_done',{n:add.length}))}
 document.addEventListener('click',e=>{const b=e.target.closest&&e.target.closest('[data-find-ideas],#fi button');if(!b)return;const d=b.dataset;const stop=()=>{e.stopImmediatePropagation();e.preventDefault()};const tr=trip(S.tripId);if(!tr)return;
   if(b.hasAttribute('data-find-ideas')){stop();findIdeas(tr);return}
@@ -2026,7 +2086,8 @@ const TPCUR={'¥':'JPY','円':'JPY','เยน':'JPY','yen':'JPY','฿':'THB','�
 function tpMoney(x){const s=String(x||'');const codes='jpy|thb|usd|eur|gbp|krw|twd|hkd|sgd|cny|myr|vnd|aud';let m=new RegExp('([¥฿$€£₩])\\s?([\\d][\\d,]*(?:\\.\\d+)?)|([\\d][\\d,]*(?:\\.\\d+)?)\\s?('+codes+'|เยน|บาท|วอน|หยวน|yen|baht|won|円)(?![a-z])|('+codes+')\\s?([\\d][\\d,]*(?:\\.\\d+)?)','i').exec(s);
   if(m){const v=parseFloat((m[2]||m[3]||m[6]).replace(/,/g,''));const c=(m[1]||m[4]||m[5]);return {v,cur:TPCUR[c]||TPCUR[c.toLowerCase()]||c.toUpperCase()}}
   m=/([\d][\d,]*(?:\.\d+)?)/.exec(s);return m?{v:parseFloat(m[1].replace(/,/g,'')),cur:''}:null}
-const TPMAPU=/https?:\/\/\S*(?:google\.[a-z.]+\/maps|maps\.app\.goo\.gl|goo\.gl\/maps|maps\.google|g\.co\/kgs)\S*/i;
+const TPMAPU=/https?:\/\/\S*(?:google\.[a-z.]+\/maps|maps\.app\.goo\.gl|goo\.gl\/maps|maps\.google|g\.co\/kgs|amap\.com|maps\.apple\.com|maps\.apple)\S*/i;
+function mapSrc(u){return /amap\.com/i.test(u)?'Amap':/maps\.apple/i.test(u)?'Apple Maps':'Google Maps'}
 function tpParse(text,refY){
   const out={title:'',days:[],skip:[]};let day=null,stop=null;
   const newDay=(n,date,title)=>{const last=out.days[out.days.length-1];day={n:n||(last?last.n+1:1),date:date||'',title:title||'',area:'',stay:'',recap:[],items:[]};out.days.push(day);stop=null};
@@ -2055,6 +2116,8 @@ function tpParse(text,refY){
       if((m=/^(?:ค่าใช้จ่าย|ราคา|ค่า[^\s:：]{0,14}|งบ|cost|price|fare|fee|tickets?)\s*[:：]\s*(.+)$/i.exec(B))){const v=tpMoney(m[1]);if(v&&!stop.cost){stop.cost=v;continue}}
       if((m=/^(?:เลขจอง|รหัสจอง|หมายเลขการจอง|booking\s*(?:ref|no\.?|number|code|id)|confirmation(?:\s*(?:no\.?|number|code))?|ref(?:erence)?|pnr)\s*[:：#]\s*(.+)$/i.exec(B))){stop.ref=m[1].trim();continue}
       if((m=/^(?:จอง|ต้องจอง|การจอง|โน้ตการจอง|booking(?:\s*note)?|reservations?|reserve|book)\s*[:：]\s*(.+)$/i.exec(B))){stop.res=m[1].trim();continue}
+      if((m=/^(?:ชื่อท้องถิ่น|ชื่อจีน|local\s*name|中文名?)\s*[:：]\s*(.+)$/i.exec(B))){stop.local=m[1].trim();continue}
+      if((m=/^(?:ที่อยู่ท้องถิ่น|local\s*address|地址)\s*[:：]\s*(.+)$/i.exec(B))){stop.addr=m[1].trim();continue}
       if((m=/^(?:แผนที่|พิกัด|map|maps|google\s*maps|location)\s*[:：]\s*(.+)$/i.exec(B))){stop.map=m[1].trim();continue}
       if(TPMAPU.test(B)&&B.replace(TPMAPU,'').trim().length<3){stop.map=B.match(TPMAPU)[0];continue}
       if(!stop.title){tpStopText(stop,B);continue}
@@ -2063,7 +2126,8 @@ function tpParse(text,refY){
     if(!out.title&&B.length<=60){out.title=tpClean(B);continue}
     out.skip.push(B)}
   out.days.forEach(d=>{d.recap=d.recap.join(' ');d.items=d.items.map(x=>{const txt=x.title+' '+x.steps.join(' ');if(!x.cost){const v=tpMoney(/[¥฿$€£₩]|\d\s?(?:jpy|thb|usd|eur|krw|twd|hkd|sgd|cny|เยน|บาท|yen|baht)/i.test(txt)?txt:'');if(v&&v.cur)x.cost=v}
-    return {t:x.t,title:x.title||'—',d:x.steps.join('\n'),k:tpKind(x.title),map:x.map,cost:x.cost,ref:x.ref,res:x.res}})});
+    const cj=/^(.*?)\s*[(（]\s*([^()（）]*[぀-ヿ㐀-鿿가-힯][^()（）]*)\s*[)）]\s*$/.exec(x.title||'');if(cj&&cj[1]&&!x.local){x.title=cj[1].trim();x.local=cj[2].trim()}
+    return {local:x.local||'',addr:x.addr||'',t:x.t,title:x.title||'—',d:x.steps.join('\n'),k:tpKind(x.title),map:x.map,cost:x.cost,ref:x.ref,res:x.res}})});
   return out}
 function tpStopText(stop,rest){rest=String(rest||'').trim();const u=rest.match(TPMAPU);if(u){if(!stop.map)stop.map=u[0];rest=rest.replace(u[0],'').trim()}if(!rest)return;
   const sp=/\s+[—–-]\s+|\s*[:：|]\s+/.exec(rest);if(sp&&sp.index>0){stop.title=tpClean(rest.slice(0,sp.index));const d=rest.slice(sp.index+sp[0].length).trim();if(d)stop.steps.unshift(d)}else stop.title=tpClean(rest)}
@@ -2090,7 +2154,7 @@ function tpPreview(){const c=tpCtx;const p=c.p;const lay=tpLayout(c);const nS=p.
     <div class="btns"><button class="btn" data-tp-back>${t('tp_back')}</button><button class="btn pri" data-tp-go>${t('tp_go')}</button></div></div>`)}
 function tpCur(p){const n={};p.days.forEach(d=>d.items.forEach(it=>{const c=it.cost&&it.cost.cur;if(c&&c!=='THB')n[c]=(n[c]||0)+1}));const k=Object.keys(n).sort((a,b)=>n[b]-n[a])[0];return k||'THB'}
 function tpRead(){const c=tpCtx;if(!c)return;const g=id=>$(id);if(g('#tp-text'))c.text=g('#tp-text').value;if(g('#tp-name'))c.name=g('#tp-name').value.trim();if(g('#tp-start'))c.start=g('#tp-start').value;if(g('#tp-rate'))c.rate=g('#tp-rate').value;if(g('#tp-from'))c.from=+g('#tp-from').value}
-function tpItem(it,cur){const o={id:uid(),done:false,t:it.t,title:it.title,d:it.d,k:it.k,map:it.map||'',cost:'',ref:it.ref||'',res:it.res||''};if(it.cost){o.cost=it.cost.v;o.cur=(it.cost.cur==='THB'&&cur!=='THB')?'THB':'trip'}return o}
+function tpItem(it,cur){const o={id:uid(),done:false,local:it.local||'',addr:it.addr||'',t:it.t,title:it.title,d:it.d,k:it.k,map:it.map||'',cost:'',ref:it.ref||'',res:it.res||''};if(it.cost){o.cost=it.cost.v;o.cur=(it.cost.cur==='THB'&&cur!=='THB')?'THB':'trip'}return o}
 function tpLink(tr,items){items.forEach(it=>{if(it.ref||it.res){const ch={id:uid(),title:it.title,note:it.res||'',done:false};tr.checklist=tr.checklist||[];tr.checklist.push(ch);it.bk=ch.id}});syncBk(tr)}
 function tpApply(){const c=tpCtx,p=c.p;const lay=tpLayout(c);const all=[];const nS=p.days.reduce((a,d)=>a+d.items.length,0);
   const byT=(a,b)=>(tmin(a.t)??1e9)-(tmin(b.t)??1e9);
@@ -2118,6 +2182,8 @@ function tpPrompt(){return S.lang==='th'?`ช่วยจัดแผนเท�
 เลขจอง: ABC123
 จอง: ต้องจองล่วงหน้า / จองภายในวันที่ ...
 แผนที่: ลิงก์ Google Maps หรือชื่อสถานที่
+ชื่อท้องถิ่น: ชื่อภาษาท้องถิ่น เช่น 豫园 (ใส่เมื่อไปจีน ญี่ปุ่น เกาหลี)
+ที่อยู่ท้องถิ่น: ที่อยู่ภาษาท้องถิ่น
 09:00 จุดถัดไป — ...
 
 วันที่ 2 · ...
@@ -2141,6 +2207,8 @@ Cost: 2,580 JPY
 Booking ref: ABC123
 Booking: book ahead / book by ...
 Map: Google Maps link or place name
+Local name: name in the local language, e.g. 豫园 (for China, Japan, Korea)
+Local address: address in the local language
 09:00 Next stop — ...
 
 Day 2 · ...
