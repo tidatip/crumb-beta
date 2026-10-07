@@ -700,6 +700,12 @@ textarea{min-height:76px}
 #tp textarea.tpin{min-height:240px;font-size:14px;line-height:1.5;resize:vertical}
 .tpai{margin-top:12px;background:var(--surface);border:1.5px dashed var(--accent-2);border-radius:14px;padding:11px 13px}
 .tpai p{margin:0;font-size:13px;color:var(--ink-2);line-height:1.5}
+.tpai .tpcn{display:grid!important;grid-template-columns:38px 1fr;gap:10px;align-items:center;width:100%;text-align:left;background:var(--surface-2)!important;color:var(--ink)!important;padding:10px 12px!important;border-radius:12px!important;margin:10px 0 2px!important}
+.tpcn i{width:38px;height:22px;border-radius:11px;background:var(--line,#ccc);position:relative;transition:.2s}
+.tpcn i:after{content:'';position:absolute;left:3px;top:3px;width:16px;height:16px;border-radius:50%;background:#fff;box-shadow:0 1px 2px rgba(0,0,0,.2);transition:.2s}
+.tpcn.on i{background:var(--accent)}.tpcn.on i:after{left:19px}
+.tpcn span{font-size:14px;font-weight:500;line-height:1.35}.tpcn small{display:block;font-weight:400;font-size:12px;color:var(--ink-2);margin-top:2px}
+.tpit .tag.uns{background:color-mix(in srgb,#e0a100 22%,var(--surface));color:var(--ink)}
 .tpai button{margin-top:8px;display:inline-flex;gap:6px;align-items:center;font-size:13.5px;font-weight:500;color:var(--accent);background:var(--surface-2);border-radius:10px;padding:7px 12px}
 .tpai svg{width:15px;height:15px}
 .tpsum{display:flex;gap:8px;align-items:center;font-size:14px;font-weight:500;background:var(--accent-soft,var(--surface-2));color:var(--ink);border-radius:12px;padding:9px 12px;margin:2px 0 4px}
@@ -972,7 +978,7 @@ function timeline(tr,di){
   day.items.forEach((it,i)=>{
     const cls=['stop',i===0?'first':'',i===day.items.length-1?'last':'',it.done?'done':'',it.skipped?'skip':'',(i===nowIdx&&!it.done&&!it.skipped)?'now':''].join(' ');
     const tags=stopTags(tr,it);
-    const map=(it.map||it.local)?`<a href="${mapURL(it.map||it.local||'')}" target="_blank" rel="noopener">${svg(P.pin,'')} ${mapLbl()}</a>`:'';
+    const map=(it.map||it.local)?`<a href="${stopMap(it)}" target="_blank" rel="noopener">${svg(P.pin,'')} ${mapLbl()}</a>`:'';
     if(i>0&&!tr.closed)h+=`<li class="ins"><div></div><div class="rail"><button type="button" data-ins-stop="${di}:${i-1}" aria-label="${t('add_stop')}">${svg(P.plus,'')}</button></div><div></div></li>`;
     h+=`<li class="${cls}" data-id="${it.id}"${!tr.closed&&!it.done&&!it.skipped?' data-mv':''}><div class="t">${esc(it.t)}</div><div class="rail"><div class="dot"></div></div>
       <div class="card" data-sd="${di}:${it.id}"><div><div class="ttl">${svg(ICO[it.k]||ICO.see)}<span>${esc(it.title)}${it.local&&it.local!==it.title?`<small class="loc" lang="zh">${esc(it.local)}</small>`:''}</span></div>
@@ -1114,7 +1120,7 @@ function shareSheet(tr){openSheet(`<h2>${t('share')} · ${esc(tr.name)}</h2>
   <button class="prow" data-share-days="${tr.id}"><span class="pi">${svg(P.photo,'')}</span><span class="pl">${t('share_day')}<div class="h" style="font-size:12px;color:var(--muted)">${t('share_day_h')}</div></span>${svg(P.chev,'')}</button>
   <div class="btns"><button class="btn" data-close>${t('cancel')}</button></div>`)}
 function viewOnlyHTML(tr){const C={bg:'#FBF3E6',card:'#FFFCF6',ink:'#2B211A',ink2:'#594538',muted:'#9A8770',acc:'#CF9A5E',line:'#E6D6BE'};
-  const day=(d,i)=>`<section><h2>${t('day')} ${i+1} · ${esc(fdate(d.date,true))}${dName(d)?' · '+esc(dName(d)):''}</h2>${d.stay?`<p class="m">${t('stay')} ${esc(d.stay)}</p>`:''}${d.recap?`<p class="m">${esc(d.recap)}</p>`:''}<ol>${d.items.filter(x=>!x.skipped).map(it=>`<li><span class="t">${esc(it.t)}</span><div><b>${esc(it.title)}</b>${it.d?`<div class="m">${esc(dLine(it.d))}</div>`:''}${it.cost?`<span class="tag">~${ifmt(tr,it,num(it.cost))}</span>`:''}${it.ref?`<span class="tag g">${esc(it.ref)}</span>`:''}${it.map?` <a href="${mapURL(it.map||it.local||'')}">${mapLbl()}</a>`:''}</div></li>`).join('')}</ol></section>`;
+  const day=(d,i)=>`<section><h2>${t('day')} ${i+1} · ${esc(fdate(d.date,true))}${dName(d)?' · '+esc(dName(d)):''}</h2>${d.stay?`<p class="m">${t('stay')} ${esc(d.stay)}</p>`:''}${d.recap?`<p class="m">${esc(d.recap)}</p>`:''}<ol>${d.items.filter(x=>!x.skipped).map(it=>`<li><span class="t">${esc(it.t)}</span><div><b>${esc(it.title)}</b>${it.d?`<div class="m">${esc(dLine(it.d))}</div>`:''}${it.cost?`<span class="tag">~${ifmt(tr,it,num(it.cost))}</span>`:''}${it.ref?`<span class="tag g">${esc(it.ref)}</span>`:''}${it.map?` <a href="${stopMap(it)}">${mapLbl()}</a>`:''}</div></li>`).join('')}</ol></section>`;
   return `<!doctype html><html lang="${S.lang}"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>${esc(tr.name)} · Crumb</title><link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Prompt:wght@400;500;600&family=Yeseva+One&display=swap"><style>body{margin:0;background:${C.bg};color:${C.ink};font-family:${S.lang==='en'?"'Prompt'":"'Prompt'"},sans-serif;padding:20px 16px 40px;max-width:640px;margin:auto}h1{font-family:'Yeseva One','Prompt',sans-serif;font-weight:500;font-size:30px;margin:0 0 4px}h2{font-family:'Yeseva One','Prompt',sans-serif;font-weight:500;font-size:20px;color:${C.acc};margin:26px 0 6px}.m{color:${C.muted};font-size:14px;margin:2px 0}ol{list-style:none;padding:0;margin:8px 0}li{display:grid;grid-template-columns:52px 1fr;gap:10px;background:${C.card};border:1px solid ${C.line};border-radius:14px;padding:12px;margin-bottom:8px}li .t{color:${C.muted};font-size:13px;padding-top:2px}li b{font-weight:500}.tag{display:inline-block;font-size:12px;background:${C.bg};border:1px solid ${C.line};border-radius:999px;padding:1px 8px;margin:6px 6px 0 0}.tag.g{background:#D9E4D1}a{color:${C.acc};font-size:13px}.hd{background:#E3BD87;border-radius:20px;padding:18px 20px;margin-bottom:6px}.legs{margin:12px 0}.leg{display:flex;justify-content:space-between;background:${C.card};border:1px solid ${C.line};border-radius:12px;padding:10px 14px;margin-bottom:6px;font-size:14px}.foot{color:${C.muted};font-size:12px;text-align:center;margin-top:30px}</style></head><body><div class="hd"><h1>${esc(tr.name)}</h1><div>${esc(frange(tr.start,tr.end))}${tr.dest?' · '+esc(tr.dest):''}</div><div class="m" style="color:${C.ink2}">${t('cities',{n:cities(tr)})} · ${t('days',{n:tr.days.length})} · ${t('people',{n:tr.members||1})}</div></div>${(tr.legs||[]).length?`<div class="legs">${tr.legs.map(l=>`<div class="leg"><b>${esc(l.from)} → ${esc(l.to)}</b><span>${esc(l.code||'')} ${esc(l.dep||'')}</span></div>`).join('')}</div>`:''}${tr.days.map(day).join('')}<p class="foot">Crumb · ${t('share_view')}</p></body></html>`}
 function wrapText(g,text,max){const out=[];for(const para of String(text).split('\n')){let line='';for(const ch of para){const test=line+ch;if(g.measureText(test).width>max&&line){out.push(line);line=ch}else line=test}out.push(line)}return out}
 async function dayJPG(tr,di,share){
@@ -1153,6 +1159,8 @@ async function dayJPG(tr,di,share){
 }
 function rr(g,x,y,w,h,r){g.beginPath();g.moveTo(x+r,y);g.arcTo(x+w,y,x+w,y+h,r);g.arcTo(x+w,y+h,x,y+h,r);g.arcTo(x,y+h,x,y,r);g.arcTo(x,y,x+w,y,r);g.closePath()}
 function mapURL(v,app){v=String(v||'').trim();if(!v)return '';app=app||mapApp();if(/^(surl\.amap\.com|uri\.amap\.com|www\.amap\.com|amap\.com|maps\.apple\.com|maps\.apple)\b/i.test(v))return 'https://'+v;if(!/^(https?:\/\/|maps\.app\.goo\.gl|goo\.gl\/maps|maps\.google\.)/i.test(v)&&app!=='google'){const ll=/^(-?\d{1,3}\.\d+)\s*,\s*(-?\d{1,3}\.\d+)$/.exec(v);if(app==='apple')return ll?`https://maps.apple.com/?ll=${ll[1]},${ll[2]}&q=${encodeURIComponent(v)}`:`https://maps.apple.com/?q=${encodeURIComponent(v)}`;return ll?`https://uri.amap.com/marker?position=${ll[2]},${ll[1]}`:`https://uri.amap.com/search?keyword=${encodeURIComponent(v)}`}if(/^(https?:\/\/|maps\.app\.goo\.gl|goo\.gl\/maps|maps\.google\.)/i.test(v))return /^https?:\/\//i.test(v)?v:'https://'+v;if(/^-?\d{1,3}\.\d+\s*,\s*-?\d{1,3}\.\d+$/.test(v))return `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(v.replace(/\s+/g,''))}`;return `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(v)}`}
+function amapQ(k,addr){const c=/^(?:中国)?\s*(香港|澳门|澳門|[㐀-鿿]{2,3}?)(?:市|特别行政区|特別行政區)/.exec(String(addr||'').trim());return `https://uri.amap.com/search?keyword=${encodeURIComponent(k)}${c?'&city='+encodeURIComponent(c[1]):''}`}
+function stopMap(it){if(mapApp()==='amap'&&it.local&&!/^(https?:|surl\.amap|uri\.amap|(www\.)?amap\.com)/i.test((it.map||'').trim()))return amapQ(it.local,it.addr);return mapURL(it.map||it.local)}
 function mapApp(tr){tr=tr||(S.tripId&&trip(S.tripId));return (tr&&tr.mapApp)||'google'}
 function mapLbl(){return {apple:'Apple Maps',amap:'Amap'}[mapApp()]||t('map_btn')}
 function mapApps(sel){return `<div class="chips" id="f-mapapp">${[['google','Google Maps'],['apple','Apple Maps'],['amap','Amap 高德']].map(([k,l])=>`<button class="${sel===k?'on':''}" data-k="${k}">${l}</button>`).join('')}</div>`}
@@ -1164,7 +1172,7 @@ document.addEventListener('input',e=>{if(e.target.id==='f-map'&&$('#f-mapinfo'))
 document.addEventListener('click',e=>{const b=e.target.closest&&e.target.closest('[data-mapsearch],[data-mapclr]');if(!b||!$('#f-map'))return;e.stopImmediatePropagation();e.preventDefault();
   if(b.hasAttribute('data-mapclr')){$('#f-local').value='';$('#f-addr').value='';$('#f-mapinfo').innerHTML='';return}
   const q=$('#f-map').value.trim()&&!/^https?:/i.test($('#f-map').value.trim())?$('#f-map').value.trim():($('#f-title').value.trim());if(!q){toast(t('need_name'));return}window.open(mapURL(q),'_blank','noopener')},true);
-function driverCard(it){const tr=trip(S.tripId);const ph=localPhrase((it.local||'')+(it.addr||''),tr);const url=mapURL(it.map||it.local||it.addr||it.title);const el=document.createElement('div');el.className='drv';
+function driverCard(it){const tr=trip(S.tripId);const ph=localPhrase((it.local||'')+(it.addr||''),tr);const url=stopMap(it)||mapURL(it.addr||it.title);const el=document.createElement('div');el.className='drv';
   el.innerHTML=`<div class="drvin"><div class="drvph" lang="zh">${esc(ph[0])}<small>${esc(ph[1])}</small></div>
     ${it.addr?(l=>`<div class="drva" lang="zh">${esc(l[0])}</div>${l.slice(1).map(x=>`<div class="drva2">${esc(x)}</div>`).join('')}`)(it.addr.split(/\n+/).map(x=>x.trim()).filter(Boolean)):''}
     <div class="drvn" lang="zh">${esc(it.local||it.title)}</div><div class="drvt">${esc(it.title)}</div>
@@ -1202,7 +1210,7 @@ function renderSet(){
   <div class="set">
     <div class="row"><div><div class="l">${t('export_png')}</div><div class="h">${t('export_h')}</div></div><button class="back" style="margin:0" data-export-png>${svg(P.photo,'')}PNG</button></div>
   </div>
-  <p class="hint">${t('hint')}</p><p class="hint" style="margin-top:10px;text-align:left">Crumb Beta b5 · v3.18</p>`;
+  <p class="hint">${t('hint')}</p><p class="hint" style="margin-top:10px;text-align:left">Crumb Beta b6 · v3.18</p>`;
 }
 function appearanceSheet(){
   const PALS=[['cream','pal_cream','#FFF9F0','#EACB9D','#D6A76F'],['lavender','pal_lav','#F5F0FF','#D0B8F2','#9B82CF'],['teal','pal_teal','#EFF8F5','#B7E1D9','#55ADA2'],['pastel','pal_pastel','#FFF9F0','#FFE6E1','#DFF6EB'],['bright','pal_bright','#58A6FF','#EE6158','#FBE449'],['sunny','pal_sunny','#FFF6C7','#FBE449','#D4A017']];
@@ -1327,7 +1335,7 @@ function dEdit(d){return isSteps(d)?sdSteps(d).join('\n'):(d||'')}
 function sdSteps(d){const parts=d.split(/\s*\n+\s*|\s+[·•]\s+/).map(x=>x.trim()).filter(Boolean);return parts}
 function stopDetail(tr,di,it){sdctx={di,id:it.id};const pics=it.pics||[];const tags=stopTags(tr,it);
   const steps=it.d?sdSteps(it.d):[];
-  const map=(it.map||it.local)?`<a class="btn" href="${mapURL(it.map||it.local||'')}" target="_blank" rel="noopener">${svg(P.pin,'')} ${mapLbl()}</a>`:'';
+  const map=(it.map||it.local)?`<a class="btn" href="${stopMap(it)}" target="_blank" rel="noopener">${svg(P.pin,'')} ${mapLbl()}</a>`:'';
   openSheet(`<div class="sdh">${t('day')} ${di+1} · ${esc(it.t)}${it.doneAt?` · ${arrLine(it)}`:''}</div>
     <h2 class="sdttl">${svg(ICO[it.k]||ICO.see)}<span>${esc(it.title)}</span></h2>
     ${isSteps(it.d)?`<ol class="sdsteps">${steps.map(x=>`<li>${esc(x)}</li>`).join('')}</ol>`:it.d?`<div class="sdd">${esc(it.d)}</div>`:''}
@@ -1507,7 +1515,7 @@ function ideaSummary(tr){const ideas=tr.ideas||[];if(!ideas.length)return `<butt
     <div class="ibpeek">${ideas.slice(0,3).map(i=>`<span>${svg(ICO[i.k]||ICO.see,'')}${esc(i.title)}</span>`).join('')}${ideas.length>3?`<span class="more">+${ideas.length-3}</span>`:''}</div></button>`}
 function ideaCard(tr,i){const tags=[];if(i.cost)tags.push(`<span class="tag cost">${fmt(tr,num(i.cost))}</span>`);
   return `<div class="icard" data-idea-edit="${i.id}"><div class="ik">${svg(ICO[i.k]||ICO.see,'')}</div><div class="ib"><div class="ttl">${esc(i.title)}${i.local&&i.local!==i.title?`<small class="loc" lang="zh">${esc(i.local)}</small>`:''}</div>${i.note?`<div class="d">${esc(i.note)}</div>`:''}${tags.length?`<div class="tags">${tags.join('')}</div>`:''}
-    <div class="iacts">${(i.map||i.local)?`<a href="${mapURL(i.map||i.local)}" target="_blank" rel="noopener">${svg(P.pin,'')} ${mapLbl()}</a>`:''}<button class="iplace" data-idea-place="${i.id}">${t('place')}${svg(P.chev,'')}</button></div></div></div>`}
+    <div class="iacts">${(i.map||i.local)?`<a href="${stopMap(i)}" target="_blank" rel="noopener">${svg(P.pin,'')} ${mapLbl()}</a>`:''}<button class="iplace" data-idea-place="${i.id}">${t('place')}${svg(P.chev,'')}</button></div></div></div>`}
 function renderIdeas(tr){const el=$('#s-trips');const ideas=tr.ideas||[];const f=S.ideaArea||'';const areas=tripAreas(tr);
   const cnt=a=>a===''?ideas.length:a==='-'?ideas.filter(i=>!i.area).length:ideas.filter(i=>sameArea(i.area,a)).length;
   const groups=(f===''?[...areas,'-']:[f]).map(a=>{const list=a==='-'?ideas.filter(i=>!i.area):ideas.filter(i=>sameArea(i.area,a));if(!list.length)return '';const ds=a==='-'?[]:areaDays(tr,a);
@@ -1589,8 +1597,8 @@ Object.assign(I.th,{map_app:'แอปแผนที่',map_app_h:'ปุ่�
 Object.assign(I.en,{map_app:'Map app',map_app_h:'Map buttons in this trip open this app · For China pick Apple Maps or Amap (Google Maps needs a VPN there)',fi_l_amap_s:'Sights in China',fi_l_trip_s:'Reviews, tickets, stays',fi_l_xhs:'Xiaohongshu RED',fi_l_xhs_s:'Local reviews'});
 Object.assign(I.th,{lv_row:'แก้แพลนด้วยกัน',lv_row_h:'เพื่อนที่มี Crumb แก้ทริปนี้ได้พร้อมกัน เห็นทันทีทุกเครื่อง',lv_row_on:'แชร์อยู่ · แก้ด้วยกัน',lv_row_on_h:'ดูลิงก์ สมาชิก หรือหยุดแชร์',lv_new:'ใหม่',lv_files:'ส่งเป็นไฟล์ (สำเนาแยก แก้แล้วไม่ถึงกัน)',lv_start_h:'ทริปนี้จะซิงก์ผ่านอินเทอร์เน็ต ใครเปิดลิงก์ใน Crumb Beta ก็เข้ามาแก้ได้ทันที',lv_shared:'เห็นตรงกันทุกเครื่อง',lv_s1:'วัน จุดแวะ เวลา รายละเอียด ลำดับ',lv_s2:'การเดินทาง ที่พัก ค่าใช้จ่าย',lv_s3:'กระเป๋าไอเดีย · เช็คลิสต์',lv_s4:'ติ๊กถึงแล้ว / ปัดข้าม ระหว่างเที่ยว',lv_mine:'เก็บไว้ในเครื่องคุณ',lv_m1:'รูปและบันทึก Journal · ภาพประกอบจุดแวะ · ภาพปก',lv_m2:'โทนสี ธีม และภาษา',lv_name:'ชื่อที่เพื่อนจะเห็น',lv_name_ph:'เช่น Tida',lv_trust:'ใครมีลิงก์ก็แก้ได้ ส่งเฉพาะในกลุ่มที่ไว้ใจ · ไม่มีเน็ตก็ยังแก้ได้ จะส่งขึ้นเองเมื่อกลับมาออนไลน์',lv_start:'เริ่มแชร์',lv_on:'แชร์อยู่',lv_ok0:'ซิงก์แล้ว',lv_off0:'ออฟไลน์',lv_wait:'กำลังซิงก์…',lv_ok:'ซิงก์แล้ว · แก้ด้วยกัน {n} คน',lv_off:'ออฟไลน์ · จะส่งเมื่อมีเน็ต',lv_copy:'คัดลอกลิงก์',lv_send:'ส่งต่อ (LINE ฯลฯ)',lv_copied:'คัดลอกลิงก์แล้ว',lv_members:'สมาชิก {n} คน',lv_you:'คุณ',lv_owner:'เจ้าของทริป',lv_someone:'เพื่อน',lv_now:'เมื่อสักครู่',lv_min:'{n} นาทีที่แล้ว',lv_hr:'{n} ชม. ที่แล้ว',lv_day:'{n} วันที่แล้ว',lv_stop:'หยุดแชร์',lv_stop_h:'ทริปกลับเป็นของคุณคนเดียว เพื่อนเก็บสำเนาล่าสุดไว้ดูได้',lv_stop_q:'หยุดแชร์ทริปนี้? เพื่อนจะแก้ต่อไม่ได้ แต่ยังมีสำเนาล่าสุดในเครื่อง',lv_leave:'ออกจากทริป',lv_leave_h:'เก็บสำเนาล่าสุดไว้ในเครื่อง แต่จะไม่ซิงก์อีก',lv_leave_q:'ออกจากทริปนี้? สำเนาล่าสุดยังอยู่ในเครื่องคุณ',lv_stopped:'ทริปนี้หยุดแชร์แล้ว · สำเนาล่าสุดยังอยู่ในเครื่อง',lv_stopped_me:'หยุดแชร์แล้ว',lv_left:'ออกจากทริปแล้ว',lv_join_t:'เข้าร่วมแพลนด้วยกัน',lv_ask_h:'ใส่รหัส 6 ตัวที่เพื่อนส่งมา หรือวางลิงก์ชวน',lv_next:'ต่อไป',lv_bad:'ลิงก์นี้ไม่ใช่ลิงก์ชวนของ Crumb',lv_404:'ไม่พบทริปนี้ หรือหยุดแชร์ไปแล้ว',lv_inv:'{n} ชวนคุณเข้าร่วม',lv_nstops:'{n} จุดแวะ',lv_j1:'ทริปนี้จะอยู่ในแท็บทริปของคุณ แก้อะไรทุกคนเห็นทันที',lv_j2:'รูปและบันทึก Journal ของคุณไม่ถูกแชร์',lv_j3:'ออกจากทริปได้ทุกเมื่อ',lv_later:'ไม่ตอนนี้',lv_join:'เข้าร่วม',lv_joined:'เข้าร่วมแล้ว',lv_need_name:'ใส่ชื่อก่อนนะ',lv_err_net:'ต่ออินเทอร์เน็ตไม่ได้ ลองใหม่อีกครั้ง',lv_err_perm:'เซิร์ฟเวอร์ไม่อนุญาต — เช็กกฎ Firestore',lv_ed:'{n} แก้แพลน',lv_ed_day:'{n} แก้ วัน {d}',lv_share_txt:'มาวางแผน {n} ด้วยกันใน Crumb',lv_code:'รหัสเข้าร่วม',lv_copy_c:'คัดลอกรหัส',lv_code_h:'เพื่อนเปิด Crumb Beta แล้วกด "เข้าร่วม" ในแท็บทริป พิมพ์รหัสนี้ได้เลย',lv_paste:'วางลิงก์หรือรหัสที่คัดลอกไว้',lv_paste_no:'วางไม่ได้ — กดค้างในช่องแล้วเลือก วาง',lv_code_404:'ไม่พบรหัสนี้ หรือหยุดแชร์ไปแล้ว',lv_inapp:'มี Crumb Beta บนหน้าจอโฮมไหม?',lv_inapp_h:'เปิดแอปนั้น → แท็บทริป → เข้าร่วม แล้วใส่รหัสนี้ ทริปจะอยู่ในแอปของคุณ',lv_inapp_or:'หรือเข้าร่วมในเบราว์เซอร์นี้เลยก็ได้ (แนะนำ Safari)',lv_join_btn:'เข้าร่วม',lv_join_btn2:'เข้าร่วมด้วยรหัส'});
 Object.assign(I.en,{lv_row:'Plan together',lv_row_h:'Friends with Crumb edit this trip at the same time, live on every phone',lv_row_on:'Shared · planning together',lv_row_on_h:'Link, members or stop sharing',lv_new:'New',lv_files:'Send as a file (separate copy, edits don\'t sync)',lv_start_h:'This trip will sync over the internet. Anyone who opens the link in Crumb Beta can edit right away',lv_shared:'Same on every phone',lv_s1:'Days, stops, times, details, order',lv_s2:'Transport, stays, costs',lv_s3:'Idea bag · checklist',lv_s4:'Arrived ticks / skips during the trip',lv_mine:'Stays on your phone',lv_m1:'Journal photos & notes · reference photos · cover',lv_m2:'Palette, theme and language',lv_name:'Name friends will see',lv_name_ph:'e.g. Tida',lv_trust:'Anyone with the link can edit — share it only with people you trust · Works offline and syncs when you\'re back online',lv_start:'Start sharing',lv_on:'Shared',lv_ok0:'Synced',lv_off0:'Offline',lv_wait:'Syncing…',lv_ok:'Synced · {n} planning',lv_off:'Offline · will sync later',lv_copy:'Copy link',lv_send:'Send (LINE etc.)',lv_copied:'Link copied',lv_members:'{n} member(s)',lv_you:'You',lv_owner:'Trip owner',lv_someone:'A friend',lv_now:'just now',lv_min:'{n} min ago',lv_hr:'{n} h ago',lv_day:'{n} days ago',lv_stop:'Stop sharing',lv_stop_h:'The trip becomes yours only; friends keep their latest copy',lv_stop_q:'Stop sharing this trip? Friends can\'t edit any more but keep their latest copy',lv_leave:'Leave trip',lv_leave_h:'Keeps your latest copy but stops syncing',lv_leave_q:'Leave this trip? Your latest copy stays on this phone',lv_stopped:'This trip is no longer shared · your latest copy is kept',lv_stopped_me:'Sharing stopped',lv_left:'Left the trip',lv_join_t:'Join a shared plan',lv_ask_h:'Enter the 6-character code from your friend, or paste the invite link',lv_next:'Next',lv_bad:'That isn\'t a Crumb invite link',lv_404:'Trip not found or no longer shared',lv_inv:'{n} invited you',lv_nstops:'{n} stops',lv_j1:'The trip appears in your Trips tab; every edit shows for everyone',lv_j2:'Your journal photos & notes aren\'t shared',lv_j3:'Leave any time',lv_later:'Not now',lv_join:'Join',lv_joined:'Joined',lv_need_name:'Add your name first',lv_err_net:'Can\'t reach the internet — try again',lv_err_perm:'Server refused — check the Firestore rules',lv_ed:'{n} edited the plan',lv_ed_day:'{n} edited Day {d}',lv_share_txt:'Plan {n} together in Crumb',lv_code:'Join code',lv_copy_c:'Copy code',lv_code_h:'Friends open Crumb Beta, tap Join on the Trips tab and type this code',lv_paste:'Paste a copied link or code',lv_paste_no:'Couldn\'t paste — long-press the box and choose Paste',lv_code_404:'Code not found or no longer shared',lv_inapp:'Have Crumb Beta on your home screen?',lv_inapp_h:'Open it → Trips → Join and enter this code so the trip lives in your app',lv_inapp_or:'Or join right here in this browser (Safari recommended)',lv_join_btn:'Join',lv_join_btn2:'Join with a code'});
-Object.assign(I.th,{loc_n:'ชื่อภาษาท้องถิ่น',loc_a:'ที่อยู่ภาษาท้องถิ่น',loc_h:'ใช้ค้นในแผนที่และโชว์ให้คนขับดู · ที่อยู่ใส่ได้ 2 บรรทัด ภาษาท้องถิ่นและอังกฤษ',loc_add:'ชื่อ / ที่อยู่ภาษาท้องถิ่น',drv_btn:'โชว์ให้คนขับดู',map_ph_amap:'วางลิงก์ที่แชร์จาก Amap หรือพิมพ์ชื่อสถานที่',map_h_amap:'กดปุ่ม Amap → หาสถานที่ → แชร์ → คัดลอก แล้วกลับมาวางที่นี่ ชื่อจีนและที่อยู่จะเติมให้เอง ใช้กับปุ่มโชว์ให้คนขับดู',map_h_other:'พิมพ์ชื่อสถานที่ หรือวางลิงก์ที่แชร์จาก {a}',drv_close:'ปิด',drv_open:'เปิดใน {a}',drv_copy_a:'คัดลอกที่อยู่',drv_copy_n:'คัดลอกชื่อ',lv_copied2:'คัดลอกแล้ว'});
-Object.assign(I.en,{loc_n:'Local name',loc_a:'Local address',loc_h:'Used for map search and to show drivers · the address can hold two lines, local language and English',loc_add:'Local name / address',drv_btn:'Show the driver',map_ph_amap:'Paste a link shared from Amap, or type a place name',map_h_amap:'Tap Amap → find the place → Share → Copy, then paste here. The Chinese name and address fill in for the driver card',map_h_other:'Type a place name or paste a link shared from {a}',drv_close:'Close',drv_open:'Open in {a}',drv_copy_a:'Copy address',drv_copy_n:'Copy name',lv_copied2:'Copied'});
+Object.assign(I.th,{tp_cn:'ไปจีน · ฮ่องกง · ไต้หวัน',tp_cn_h:'ให้ AI ใส่ชื่อจีนและที่อยู่จีนทุกจุด ปุ่ม Amap จะค้นด้วยชื่อจีนให้เอง',tp_uns:'ตรวจชื่อจีน',loc_n:'ชื่อภาษาท้องถิ่น',loc_a:'ที่อยู่ภาษาท้องถิ่น',loc_h:'ใช้ค้นในแผนที่และโชว์ให้คนขับดู · ที่อยู่ใส่ได้ 2 บรรทัด ภาษาท้องถิ่นและอังกฤษ',loc_add:'ชื่อ / ที่อยู่ภาษาท้องถิ่น',drv_btn:'โชว์ให้คนขับดู',map_ph_amap:'วางลิงก์ที่แชร์จาก Amap หรือพิมพ์ชื่อสถานที่',map_h_amap:'กดปุ่ม Amap → หาสถานที่ → แชร์ → คัดลอก แล้วกลับมาวางที่นี่ ชื่อจีนและที่อยู่จะเติมให้เอง ใช้กับปุ่มโชว์ให้คนขับดู',map_h_other:'พิมพ์ชื่อสถานที่ หรือวางลิงก์ที่แชร์จาก {a}',drv_close:'ปิด',drv_open:'เปิดใน {a}',drv_copy_a:'คัดลอกที่อยู่',drv_copy_n:'คัดลอกชื่อ',lv_copied2:'คัดลอกแล้ว'});
+Object.assign(I.en,{tp_cn:'China · Hong Kong · Taiwan',tp_cn_h:'The AI adds a Chinese name and address to every stop; the Amap button searches by the Chinese name',tp_uns:'Check Chinese name',loc_n:'Local name',loc_a:'Local address',loc_h:'Used for map search and to show drivers · the address can hold two lines, local language and English',loc_add:'Local name / address',drv_btn:'Show the driver',map_ph_amap:'Paste a link shared from Amap, or type a place name',map_h_amap:'Tap Amap → find the place → Share → Copy, then paste here. The Chinese name and address fill in for the driver card',map_h_other:'Type a place name or paste a link shared from {a}',drv_close:'Close',drv_open:'Open in {a}',drv_copy_a:'Copy address',drv_copy_n:'Copy name',lv_copied2:'Copied'});
 Object.assign(I.th,{fi_btn:'หาไอเดีย',fi_t:'หาไอเดียเที่ยว',fi_h:'ยังไม่รู้จะไปไหนดี? ลองหาจากเว็บหรือให้ AI แนะนำ แล้ววางรายชื่อรวมกันทีเดียว แอปจะแยกเป็นไอเดียตามย่านให้',fi_city:'เมือง / จุดหมาย',fi_s1:'ค้นในเว็บ',fi_s1_h:'เปิดผลค้นหาของเมืองนี้ เจอที่ชอบให้คัดลอกชื่อหรือลิงก์ไว้หลาย ๆ ที่ แล้วกลับมาวางในข้อ 3 ทีเดียว',fi_l_maps:'Google Maps',fi_l_maps_s:'ที่เที่ยวยอดนิยม',fi_l_blog:'บล็อกรีวิว',fi_l_blog_s:'Google ภาษาไทย',fi_l_yt:'YouTube',fi_l_yt_s:'vlog เที่ยว',fi_l_ta:'Tripadvisor',fi_l_ta_s:'Things to do',fi_s2:'ให้ AI แนะนำ',fi_s2_h:'เลือกสิ่งที่สนใจ คัดลอกพรอมต์ไปถาม ChatGPT, Gemini หรือ Claude แล้วคัดลอกคำตอบทั้งหมดกลับมาวางในข้อ 3',fi_i_food:'ของกิน',fi_i_cafe:'คาเฟ่',fi_i_sight:'วัด / ประวัติศาสตร์',fi_i_shop:'ช้อปปิ้ง',fi_i_nature:'ธรรมชาติ',fi_i_night:'วิวกลางคืน',fi_i_museum:'พิพิธภัณฑ์',fi_i_kids:'เด็ก / ครอบครัว',fi_s3:'วางรายชื่อ',fi_s3_h:'วางคำตอบจาก AI รายชื่อจากบล็อก (บรรทัดละที่) หรือลิงก์ Google Maps หลายอันรวมกันได้',fi_ph:'ย่าน: The Bund\n- The Bund — วิวริมแม่น้ำ · หัวค่ำ\n- Nanjing Road — ถนนช้อปปิ้ง\nhttps://maps.app.goo.gl/…',fi_sum:'พบ {n} ไอเดีย · {a} ย่าน',fi_x_h:'แตะ × เพื่อเอาที่ไม่สนใจออก ไอเดียจะเข้ากระเป๋าตามย่าน แล้วค่อยย้ายลงวันทีหลัง',fi_dup:'มีในกระเป๋าแล้ว',fi_go:'เพิ่ม {n} ไอเดีย',fi_done:'เพิ่ม {n} ไอเดียเข้ากระเป๋าแล้ว',fi_none:'ยังไม่เจอไอเดีย — ลองวางเป็นบรรทัดละที่',fi_noname:'สถานที่จาก Google Maps'});
 Object.assign(I.en,{fi_btn:'Find ideas',fi_t:'Find ideas',fi_h:'No idea where to go yet? Browse the web or ask an AI, then paste everything back at once — Crumb sorts it into ideas by area.',fi_city:'City / destination',fi_s1:'Search the web',fi_s1_h:'Opens results for this city. Copy the names or links you like, then paste them all into step 3 in one go',fi_l_maps:'Google Maps',fi_l_maps_s:'Top sights',fi_l_blog:'Blogs',fi_l_blog_s:'Itinerary posts',fi_l_yt:'YouTube',fi_l_yt_s:'Travel vlogs',fi_l_ta:'Tripadvisor',fi_l_ta_s:'Things to do',fi_s2:'Ask an AI',fi_s2_h:'Pick what you like, copy the prompt into ChatGPT, Gemini or Claude, then paste the whole answer into step 3',fi_i_food:'Food',fi_i_cafe:'Cafés',fi_i_sight:'Temples & history',fi_i_shop:'Shopping',fi_i_nature:'Nature',fi_i_night:'Night views',fi_i_museum:'Museums',fi_i_kids:'Kids & family',fi_s3:'Paste a list',fi_s3_h:'Paste an AI answer, a list from a blog (one place per line) or several Google Maps links together',fi_ph:'Area: The Bund\n- The Bund — riverside views · evening\n- Nanjing Road — shopping street\nhttps://maps.app.goo.gl/…',fi_sum:'{n} ideas · {a} areas',fi_x_h:'Tap × to drop what you don\'t fancy. Ideas go into the bag by area — place them on days later',fi_dup:'Already in the bag',fi_go:'Add {n} ideas',fi_done:'Added {n} ideas to the bag',fi_none:'No ideas found — try one place per line',fi_noname:'Place from Google Maps'});
 Object.assign(I.th,{tp_t:'วางแผนจากข้อความ',tp_link:'วางจากข้อความ',tp_add:'จากข้อความ',tp_h:'วางแผนที่มีอยู่แล้ว เช่น บล็อก โปรแกรมทัวร์ แชต LINE โน้ต หรือคำตอบจาก AI — บรรทัด "วันที่ 1 / Day 1" จะเป็นวัน และบรรทัดที่ขึ้นต้นด้วยเวลาจะเป็นจุดแวะ',tp_ph:'วันที่ 1 · 17 ต.ค.\nที่พัก: Wakata Lodge\n07:30 ถึงสนามบินนาริตะ — ผ่าน ตม.\n09:07 Skyliner ไปอุเอโนะ\nค่าใช้จ่าย: 2,580 JPY',tp_ai:'ใช้ ChatGPT, Gemini หรือ Claude อยู่แล้ว? คัดลอกพรอมต์นี้ไปพร้อมแผนของคุณ แล้ววางคำตอบกลับมาที่นี่ จะได้ค่าใช้จ่าย เลขจอง และขั้นตอนครบกว่า',tp_copy:'คัดลอกพรอมต์',tp_copied:'คัดลอกพรอมต์แล้ว',tp_read:'ดูตัวอย่าง',tp_empty:'วางข้อความก่อนนะ',tp_none:'ยังไม่เจอจุดแวะ — ลองใส่บรรทัด "วันที่ 1" และขึ้นต้นจุดแวะด้วยเวลา เช่น 09:30',tp_check:'ตรวจก่อนนำเข้า',tp_sum:'พบ {d} วัน · {s} จุดแวะ',tp_x_h:'แตะ × เพื่อเอาจุดที่ไม่ต้องการออก ที่เหลือแก้ได้หลังนำเข้า',tp_start:'วันแรกของแพลน',tp_start_h:'ข้อความไม่ได้ระบุวันที่ — เลือกวันแรก แล้ววันถัดไปจะเรียงต่อให้',tp_by_date:'ใช้วันที่ตามข้อความ',tp_into:'เพิ่มเข้า {n}',tp_from:'เริ่มลงที่',tp_merge_h:'จุดแวะจะต่อเข้าวันเดียวกันและเรียงตามเวลา ข้อมูลวันที่มีอยู่แล้วไม่ถูกเขียนทับ',tp_new_day:'วันใหม่',tp_noit:'ไม่มีจุดแวะ',tp_skip:'ไม่ได้นำเข้า {n} บรรทัด',tp_back:'แก้ข้อความ',tp_go:'นำเข้า',tp_done:'นำเข้า {d} วัน {s} จุดแวะแล้ว',tp_until:'ถึง {t}',tp_nst:'{n} จุดแวะ',tp_need_d:'เลือกวันแรกของแพลนก่อน',auto_day_h:'เว้นว่างไว้ แอปจะตั้งชื่อให้จากจุดแวะของวันนั้น'});
@@ -2088,6 +2096,7 @@ function tpMoney(x){const s=String(x||'');const codes='jpy|thb|usd|eur|gbp|krw|t
   m=/([\d][\d,]*(?:\.\d+)?)/.exec(s);return m?{v:parseFloat(m[1].replace(/,/g,'')),cur:''}:null}
 const TPMAPU=/https?:\/\/\S*(?:google\.[a-z.]+\/maps|maps\.app\.goo\.gl|goo\.gl\/maps|maps\.google|g\.co\/kgs|amap\.com|maps\.apple\.com|maps\.apple)\S*/i;
 function mapSrc(u){return /amap\.com/i.test(u)?'Amap':/maps\.apple/i.test(u)?'Apple Maps':'Google Maps'}
+function tpUns(v){v=String(v||'').trim();const r=/\s*[(（\[]\s*(?:ไม่แน่ใจ|unsure|not\s*sure|uncertain|\?)\s*[)）\]]\s*$/i;return r.test(v)?[v.replace(r,'').trim(),true]:[v,false]}
 function tpParse(text,refY){
   const out={title:'',days:[],skip:[]};let day=null,stop=null;
   const newDay=(n,date,title)=>{const last=out.days[out.days.length-1];day={n:n||(last?last.n+1:1),date:date||'',title:title||'',area:'',stay:'',recap:[],items:[]};out.days.push(day);stop=null};
@@ -2116,8 +2125,8 @@ function tpParse(text,refY){
       if((m=/^(?:ค่าใช้จ่าย|ราคา|ค่า[^\s:：]{0,14}|งบ|cost|price|fare|fee|tickets?)\s*[:：]\s*(.+)$/i.exec(B))){const v=tpMoney(m[1]);if(v&&!stop.cost){stop.cost=v;continue}}
       if((m=/^(?:เลขจอง|รหัสจอง|หมายเลขการจอง|booking\s*(?:ref|no\.?|number|code|id)|confirmation(?:\s*(?:no\.?|number|code))?|ref(?:erence)?|pnr)\s*[:：#]\s*(.+)$/i.exec(B))){stop.ref=m[1].trim();continue}
       if((m=/^(?:จอง|ต้องจอง|การจอง|โน้ตการจอง|booking(?:\s*note)?|reservations?|reserve|book)\s*[:：]\s*(.+)$/i.exec(B))){stop.res=m[1].trim();continue}
-      if((m=/^(?:ชื่อท้องถิ่น|ชื่อจีน|local\s*name|中文名?)\s*[:：]\s*(.+)$/i.exec(B))){stop.local=m[1].trim();continue}
-      if((m=/^(?:ที่อยู่ท้องถิ่น|local\s*address|地址)\s*[:：]\s*(.+)$/i.exec(B))){stop.addr=m[1].trim();continue}
+      if((m=/^(?:ชื่อท้องถิ่น|ชื่อจีน|local\s*name|chinese\s*name|中文名?)\s*[:：]\s*(.+)$/i.exec(B))){const u=tpUns(m[1]);stop.local=u[0];if(u[1])stop.unsure=true;continue}
+      if((m=/^(?:ที่อยู่ท้องถิ่น|ที่อยู่จีน|local\s*address|chinese\s*address|地址)\s*[:：]\s*(.+)$/i.exec(B))){const u=tpUns(m[1]);stop.addr=u[0];if(u[1])stop.unsure=true;continue}
       if((m=/^(?:แผนที่|พิกัด|map|maps|google\s*maps|location)\s*[:：]\s*(.+)$/i.exec(B))){stop.map=m[1].trim();continue}
       if(TPMAPU.test(B)&&B.replace(TPMAPU,'').trim().length<3){stop.map=B.match(TPMAPU)[0];continue}
       if(!stop.title){tpStopText(stop,B);continue}
@@ -2127,23 +2136,23 @@ function tpParse(text,refY){
     out.skip.push(B)}
   out.days.forEach(d=>{d.recap=d.recap.join(' ');d.items=d.items.map(x=>{const txt=x.title+' '+x.steps.join(' ');if(!x.cost){const v=tpMoney(/[¥฿$€£₩]|\d\s?(?:jpy|thb|usd|eur|krw|twd|hkd|sgd|cny|เยน|บาท|yen|baht)/i.test(txt)?txt:'');if(v&&v.cur)x.cost=v}
     const cj=/^(.*?)\s*[(（]\s*([^()（）]*[぀-ヿ㐀-鿿가-힯][^()（）]*)\s*[)）]\s*$/.exec(x.title||'');if(cj&&cj[1]&&!x.local){x.title=cj[1].trim();x.local=cj[2].trim()}
-    return {local:x.local||'',addr:x.addr||'',t:x.t,title:x.title||'—',d:x.steps.join('\n'),k:tpKind(x.title),map:x.map,cost:x.cost,ref:x.ref,res:x.res}})});
+    return {unsure:!!x.unsure,local:x.local||'',addr:x.addr||'',t:x.t,title:x.title||'—',d:x.steps.join('\n'),k:tpKind(x.title),map:x.map,cost:x.cost,ref:x.ref,res:x.res}})});
   return out}
 function tpStopText(stop,rest){rest=String(rest||'').trim();const u=rest.match(TPMAPU);if(u){if(!stop.map)stop.map=u[0];rest=rest.replace(u[0],'').trim()}if(!rest)return;
   const sp=/\s+[—–-]\s+|\s*[:：|]\s+/.exec(rest);if(sp&&sp.index>0){stop.title=tpClean(rest.slice(0,sp.index));const d=rest.slice(sp.index+sp[0].length).trim();if(d)stop.steps.unshift(d)}else stop.title=tpClean(rest)}
 let tpCtx=null;
 function tpBase(c){if(c.mode==='merge'){const tr=trip(c.tid);return (tr.days[c.from]||tr.days[0]||{}).date||c.start}return c.start}
 function tpLayout(c){const p=c.p;const base=tpBase(c);let prev='';return p.days.map((d,i)=>{let date=d.date;if(!date)date=prev?isoAdd(prev,1):(base?isoAdd(base,i):'');prev=date;let idx=-1;if(c.mode==='merge'&&date){idx=trip(c.tid).days.findIndex(x=>x.date===date)}return {date,idx}})}
-function tpOpen(mode,tid){tpCtx=tpCtx&&tpCtx.mode===mode&&tpCtx.tid===tid?tpCtx:{mode,tid,text:'',from:0,start:'',name:''};const c=tpCtx;if(!c.text&&S.tpDraft&&S.tpDraft.mode===mode&&(S.tpDraft.tid||null)===(tid||null))c.text=S.tpDraft.text||'';
+function tpOpen(mode,tid){tpCtx=tpCtx&&tpCtx.mode===mode&&tpCtx.tid===tid?tpCtx:{mode,tid,text:'',from:0,start:'',name:''};const c=tpCtx;if(c.cn==null)c.cn=!!(tid&&cnTrip(trip(tid)));if(!c.text&&S.tpDraft&&S.tpDraft.mode===mode&&(S.tpDraft.tid||null)===(tid||null))c.text=S.tpDraft.text||'';
   openSheet(`<div id="tp"><h2>${t('tp_t')}</h2>${mode==='merge'?`<div class="tpinto">${t('tp_into',{n:`<b>${esc(trip(tid).name)}</b>`})}</div>`:''}<div class="hint" style="margin:2px 0 8px">${t('tp_h')}</div>
     <textarea id="tp-text" class="tpin" placeholder="${esc(t('tp_ph'))}">${esc(c.text)}</textarea>
-    <div class="tpai"><p>${t('tp_ai')}</p><button type="button" data-tp-copy>${svg('M8 8h11v12H8zM5 16V4h11','')}${t('tp_copy')}</button></div>
+    <div class="tpai"><p>${t('tp_ai')}</p><button type="button" class="tpcn${c.cn?' on':''}" data-tp-cn><i></i><span>${t('tp_cn')}<small>${t('tp_cn_h')}</small></span></button><button type="button" data-tp-copy>${svg('M8 8h11v12H8zM5 16V4h11','')}${t('tp_copy')}</button></div>
     <div class="btns">${mode==='new'?`<button class="btn" data-tp-wz>${t('wz_prev')}</button>`:`<button class="btn" data-close>${t('cancel')}</button>`}<button class="btn pri" data-tp-read>${t('tp_read')}</button></div></div>`)}
 function tpPreview(){const c=tpCtx;const p=c.p;const lay=tpLayout(c);const nS=p.days.reduce((a,d)=>a+d.items.length,0);const hasDate=p.days.some(d=>d.date);const tr=c.mode==='merge'?trip(c.tid):null;
   const tag=(cls,x)=>`<span class="tag ${cls}">${esc(x)}</span>`;
   const days=p.days.map((d,di)=>{const L=lay[di];const head=c.mode==='merge'?(L.idx>=0?`<b>${t('day')} ${L.idx+1}</b>`:`<span class="nw">${t('tp_new_day')}</span>`):`<b>${t('day')} ${di+1}</b>`;
     return `<div class="tpday"><div class="tpdh">${head}<span>${L.date?esc(fdate(L.date,true)):''}</span></div>${d.title?`<div class="tpdt">${esc(d.title)}</div>`:''}${d.area||d.stay?`<div class="tpmeta">${d.area?`<span>${svg(P.pin,'')}${esc(d.area)}</span>`:''}${d.stay?`<span>${svg(ICO.stay,'')}${t('stay')} ${esc(d.stay)}</span>`:''}</div>`:''}
-      ${d.items.length?d.items.map((it,ii)=>`<div class="tpit"><span class="tm">${esc(it.t)}</span>${svg(ICO[it.k]||ICO.see)}<div><b>${esc(it.title)}</b>${it.d?`<small>${esc(dLine(it.d))}</small>`:''}${it.cost||it.ref||it.res||it.map?`<div class="tags">${it.cost?tag('cost','~'+nf(it.cost.v)+' '+(it.cost.cur||(tr?sym(tr):tpCur(p)))):''}${it.ref?tag('ref',it.ref):''}${it.res?tag('res',it.res):''}${it.map?tag('',(S.lang==='th'?'แผนที่':'Map')):''}</div>`:''}</div><button type="button" class="tpx" data-tp-x="${di}:${ii}" aria-label="remove">${svg(P.x,'')}</button></div>`).join(''):`<div class="empty">${t('tp_noit')}</div>`}</div>`}).join('');
+      ${d.items.length?d.items.map((it,ii)=>`<div class="tpit"><span class="tm">${esc(it.t)}</span>${svg(ICO[it.k]||ICO.see)}<div><b>${esc(it.title)}${it.local&&it.local!==it.title?` <span class="locin" lang="zh">${esc(it.local)}</span>`:''}</b>${it.addr?`<small lang="zh">${esc(it.addr)}</small>`:''}${it.d?`<small>${esc(dLine(it.d))}</small>`:''}${it.cost||it.ref||it.res||it.map||it.unsure?`<div class="tags">${it.unsure?tag('uns',t('tp_uns')):''}${it.cost?tag('cost','~'+nf(it.cost.v)+' '+(it.cost.cur||(tr?sym(tr):tpCur(p)))):''}${it.ref?tag('ref',it.ref):''}${it.res?tag('res',it.res):''}${it.map?tag('',(S.lang==='th'?'แผนที่':'Map')):''}</div>`:''}</div><button type="button" class="tpx" data-tp-x="${di}:${ii}" aria-label="remove">${svg(P.x,'')}</button></div>`).join(''):`<div class="empty">${t('tp_noit')}</div>`}</div>`}).join('');
   openSheet(`<div id="tp"><h2>${t('tp_check')}</h2><div class="tpsum">${svg(P.check,'')}${t('tp_sum',{d:p.days.length,s:nS})}</div>
     ${c.mode==='new'?`<label class="f">${t('name')}</label><input id="tp-name" value="${esc(c.name)}" placeholder="Kansai Sakura">
       ${hasDate?`<label class="f">${t('dates')}</label><div class="tpdates">${esc(frange(lay[0].date,lay.map(l=>l.date).sort().pop()))}<small>${t('tp_by_date')}</small></div>`:`<label class="f">${t('tp_start')}</label><input id="tp-start" type="date" value="${esc(c.start)}"><div class="hint" style="margin-top:3px">${t('tp_start_h')}</div>`}
@@ -2164,13 +2173,13 @@ function tpApply(){const c=tpCtx,p=c.p;const lay=tpLayout(c);const all=[];const 
     const days=[...map.values()].sort((a,b)=>a.date<b.date?-1:1);days.forEach(d=>d.items.sort(byT));
     const areas=[...new Set(days.map(d=>d.area).filter(Boolean))].slice(0,3).join(' · ');
     const tr={id:uid(),name:c.name,dest:areas,start:days[0].date,end:days[days.length-1].date,members:2,planning:false,cover:'',mode:'fly',cur,rate:cur==='THB'?1:(+c.rate||0),spendPP:0,legs:[],stays:[],checklist:[],ideas:[],days};
-    tpLink(tr,all);S.trips.push(tr);S.wiz=null;S.tripId=tr.id;S.dayView=null;S.ideaView=false;S.costView=false}
+    if(c.cn)tr.mapApp='amap';tpLink(tr,all);S.trips.push(tr);S.wiz=null;S.tripId=tr.id;S.dayView=null;S.ideaView=false;S.costView=false}
   else{const tr=trip(c.tid);let first=null;
     p.days.forEach((d,i)=>{const date=lay[i].date;let x=tr.days.find(y=>y.date===date);if(!x){x={date,title:'',area:'',stay:'',recap:'',notes:[],checks:[],items:[]};tr.days.push(x)}
       if(!x.title)x.title=d.title||'';if(!x.area)x.area=d.area;if(!x.stay)x.stay=d.stay;if(!x.recap)x.recap=d.recap;const its=d.items.map(it=>tpItem(it,tr.cur||'THB'));x.items.push(...its);x.items.sort(byT);all.push(...its);if(first==null)first=date});
-    tr.days.sort((a,b)=>a.date<b.date?-1:1);tr.start=tr.days[0].date;tr.end=tr.days[tr.days.length-1].date;tpLink(tr,all);const fi=tr.days.findIndex(y=>y.date===first);S.dayView=fi>=0?fi:null}
+    if(c.cn&&(!tr.mapApp||tr.mapApp==='google'))tr.mapApp='amap';tr.days.sort((a,b)=>a.date<b.date?-1:1);tr.start=tr.days[0].date;tr.end=tr.days[tr.days.length-1].date;tpLink(tr,all);const fi=tr.days.findIndex(y=>y.date===first);S.dayView=fi>=0?fi:null}
   tpCtx=null;delete S.tpDraft;save();closeSheet();go('trips');toast(t('tp_done',{d:p.days.length,s:nS}))}
-function tpPrompt(){return S.lang==='th'?`ช่วยจัดแผนเที่ยวด้านล่างให้อยู่ในรูปแบบนี้ เพื่อนำเข้าแอป Crumb — ตอบเป็นข้อความธรรมดา ไม่ใช้ตาราง ไม่ใช้ตัวหนา
+function tpPrompt(){if(tpCtx&&tpCtx.cn)return tpPromptCN();return S.lang==='th'?`ช่วยจัดแผนเที่ยวด้านล่างให้อยู่ในรูปแบบนี้ เพื่อนำเข้าแอป Crumb — ตอบเป็นข้อความธรรมดา ไม่ใช้ตาราง ไม่ใช้ตัวหนา
 
 ชื่อทริป: ...
 วันที่ 1 · 17 ต.ค. 2026 · ชื่อของวันนั้น
@@ -2221,6 +2230,65 @@ Rules
 
 My plan or what I want:
 `}
+function cnTrip(tr){return !!tr&&(tr.mapApp==='amap'||/^(CNY|RMB|HKD|TWD|MOP)$/.test(tr.cur||''))}
+function tpPromptCN(){return S.lang==='th'?`ช่วยจัดแผนเที่ยวด้านล่างให้อยู่ในรูปแบบนี้ เพื่อนำเข้าแอป Crumb — ตอบเป็นข้อความธรรมดา ไม่ใช้ตาราง ไม่ใช้ตัวหนา
+ทริปนี้ไปจีน / ฮ่องกง / ไต้หวัน ฉันใช้แผนที่ Amap (高德地图) ซึ่งเป็นภาษาจีนทั้งหมด และอ่านภาษาจีนไม่ออก
+
+ชื่อทริป: ...
+วันที่ 1 · 17 ต.ค. 2026 · ชื่อของวันนั้น
+พื้นที่: เมืองหรือย่าน
+ที่พัก: ชื่อที่พักคืนนั้น (ชื่อจีน)
+09:00 ชื่อสถานที่ภาษาไทยหรืออังกฤษ — คืออะไร เช่น สวนจีนโบราณสมัยราชวงศ์หมิง
+ชื่อจีน: 豫园
+ที่อยู่จีน: 上海市黄浦区福佑路168号
+- วิธีเดินทาง เช่น รถไฟใต้ดินสาย 10 ลงสถานี Yuyuan Garden (豫园) ทางออก 1
+ค่าใช้จ่าย: 40 CNY
+จอง: ต้องจองล่วงหน้า / จองภายในวันที่ ...
+11:30 จุดถัดไป — ...
+
+วันที่ 2 · ...
+
+กติกา
+- ทุกจุดแวะ รวมร้านอาหาร สถานี และที่พัก ต้องมีบรรทัด ชื่อจีน และ ที่อยู่จีน
+- ชื่อจีนต้องตรงกับชื่อที่ค้นเจอใน Amap (高德地图) ใช้อักษรจีนตัวย่อสำหรับจีนแผ่นดินใหญ่ และตัวเต็มสำหรับฮ่องกง มาเก๊า ไต้หวัน
+- ที่อยู่จีนเขียนเต็ม มีเมือง เขต ถนน และเลขที่ เพื่อโชว์ให้คนขับแท็กซี่ดูได้
+- ถ้าไม่แน่ใจชื่อหรือที่อยู่จีน ให้เขียน (ไม่แน่ใจ) ต่อท้ายบรรทัดนั้น ห้ามเดา
+- ชื่อสถานีหรือป้ายในขั้นตอนเดินทาง ให้มีชื่อจีนในวงเล็บ
+- ทุกจุดแวะขึ้นต้นบรรทัดด้วยเวลาแบบ 24 ชม. (HH:MM) เรียงตามเวลา
+- ใช้รหัสสกุลเงิน เช่น CNY, HKD, TWD
+- ไม่ต้องใส่ลิงก์แผนที่ แอปจะค้นใน Amap ด้วยชื่อจีนให้เอง
+
+แผนเที่ยวหรือความต้องการของฉัน:
+`:`Please rewrite the trip plan below in this exact format so I can import it into the Crumb app — plain text only, no tables, no bold.
+This trip is to mainland China / Hong Kong / Taiwan. I use Amap (高德地图), which is entirely in Chinese, and I can't read Chinese.
+
+Trip name: ...
+Day 1 · 17 Oct 2026 · Title for the day
+Area: city or neighbourhood
+Stay: tonight's hotel (Chinese name)
+09:00 Place name in English — what it is, e.g. Ming-dynasty classical garden
+Chinese name: 豫园
+Chinese address: 上海市黄浦区福佑路168号
+- How to get there, e.g. Metro Line 10 to Yuyuan Garden (豫园), exit 1
+Cost: 40 CNY
+Booking: book ahead / book by ...
+11:30 Next stop — ...
+
+Day 2 · ...
+
+Rules
+- Every stop, including restaurants, stations and hotels, must have a Chinese name line and a Chinese address line
+- The Chinese name must match what Amap (高德地图) finds: simplified characters for mainland China, traditional for Hong Kong, Macau and Taiwan
+- Write the full Chinese address (city, district, street, number) so it can be shown to a taxi driver
+- If you are not sure of a Chinese name or address, add (unsure) at the end of that line — never guess
+- Station or stop names in the directions get their Chinese name in brackets
+- Every stop starts with a 24-hour time (HH:MM), in time order
+- Use currency codes such as CNY, HKD, TWD
+- No map links needed — the app searches Amap by the Chinese name
+
+My plan or what I want:
+`}
+document.addEventListener('click',e=>{const b=e.target.closest&&e.target.closest('[data-tp-cn]');if(!b||!tpCtx)return;e.stopImmediatePropagation();e.preventDefault();tpCtx.cn=!tpCtx.cn;b.classList.toggle('on',tpCtx.cn)},true);
 function tpCopy(){const p=tpPrompt();const ok=()=>toast(t('tp_copied'));const fb=()=>{const a=document.createElement('textarea');a.value=p;a.setAttribute('readonly','');a.style.cssText='position:fixed;top:0;left:0;opacity:0';document.body.appendChild(a);a.select();a.setSelectionRange(0,p.length);try{document.execCommand('copy');ok()}catch(_){}a.remove()};
   if(navigator.clipboard&&navigator.clipboard.writeText)navigator.clipboard.writeText(p).then(ok,fb);else fb()}
 document.addEventListener('click',e=>{const b=e.target.closest&&e.target.closest('[data-tp-new],[data-tp-add],#tp button');if(!b)return;const d=b.dataset;const stop=()=>{e.stopImmediatePropagation();e.preventDefault()};
