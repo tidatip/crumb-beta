@@ -755,6 +755,15 @@ textarea{min-height:76px}
 .drvbtn{display:flex;gap:10px;align-items:center;width:100%;margin-top:12px;padding:12px 14px;border-radius:16px;background:var(--surface);text-align:left;color:var(--ink);font-size:15px;font-weight:500;box-shadow:0 2px 10px rgba(0,0,0,.04)}
 .drvbtn svg{width:22px;height:22px;color:var(--accent);flex:0 0 auto}
 .drvbtn small{display:block;font-size:13px;color:var(--muted);font-weight:400}
+.amq{position:fixed;inset:0;z-index:55;background:rgba(0,0,0,.45);display:flex;align-items:flex-end;justify-content:center;padding:0 12px calc(12px + env(safe-area-inset-bottom))}
+.amqin{width:100%;max-width:520px;background:var(--bg);color:var(--ink);border-radius:22px;padding:18px 16px 14px;box-shadow:0 12px 40px rgba(0,0,0,.18)}
+.amqh{font-family:var(--fh);font-weight:var(--fhw);font-size:20px;margin:2px 4px 4px}
+.amqs{font-size:13.5px;color:var(--muted);margin:0 4px 12px;line-height:1.45}
+.amqo{display:flex;gap:12px;align-items:center;width:100%;margin-top:8px;padding:13px 14px;border-radius:16px;background:var(--surface);text-align:left;color:var(--ink);font-size:15.5px;font-weight:500;box-shadow:0 2px 10px rgba(0,0,0,.04)}
+.amqo svg{width:24px;height:24px;color:var(--accent);flex:0 0 auto}
+.amqo small{display:block;font-size:13px;color:var(--muted);font-weight:400;line-height:1.4;margin-top:1px}
+.amqn{font-size:12.5px;color:var(--muted);text-align:center;margin:12px 0 4px}
+.amqx{display:block;width:100%;height:46px;margin-top:6px;border-radius:14px;color:var(--ink-2);font-size:15px}
 .drv{position:fixed;inset:0;z-index:60;background:#fff;color:#111;display:grid;place-items:center;padding:24px 20px calc(24px + env(safe-area-inset-bottom));overflow:auto}
 .drvin{text-align:center;max-width:640px;width:100%}
 .drvph{font-size:24px;color:#333;margin-bottom:22px}
@@ -1171,13 +1180,38 @@ function mapPaste(v){const u=v.match(TPMAPU);if(!u||!/[\u3400-\u9fff]/.test(v))r
 document.addEventListener('input',e=>{if(e.target.id==='f-map'&&$('#f-mapinfo'))mapPaste(e.target.value)});
 document.addEventListener('click',e=>{const b=e.target.closest&&e.target.closest('[data-mapsearch],[data-mapclr]');if(!b||!$('#f-map'))return;e.stopImmediatePropagation();e.preventDefault();
   if(b.hasAttribute('data-mapclr')){$('#f-local').value='';$('#f-addr').value='';$('#f-mapinfo').innerHTML='';return}
-  const q=$('#f-map').value.trim()&&!/^https?:/i.test($('#f-map').value.trim())?$('#f-map').value.trim():($('#f-title').value.trim());if(!q){toast(t('need_name'));return}window.open(mapURL(q),'_blank','noopener')},true);
+  const q=$('#f-map').value.trim()&&!/^https?:/i.test($('#f-map').value.trim())?$('#f-map').value.trim():($('#f-title').value.trim());if(!q){toast(t('need_name'));return}amapOpen(mapURL(q))},true);
 function driverCard(it){const tr=trip(S.tripId);const ph=localPhrase((it.local||'')+(it.addr||''),tr);const url=stopMap(it)||mapURL(it.addr||it.title);const el=document.createElement('div');el.className='drv';
   el.innerHTML=`<div class="drvin"><div class="drvph" lang="zh">${esc(ph[0])}<small>${esc(ph[1])}</small></div>
     ${it.addr?(l=>`<div class="drva" lang="zh">${esc(l[0])}</div>${l.slice(1).map(x=>`<div class="drva2">${esc(x)}</div>`).join('')}`)(it.addr.split(/\n+/).map(x=>x.trim()).filter(Boolean)):''}
     <div class="drvn" lang="zh">${esc(it.local||it.title)}</div><div class="drvt">${esc(it.title)}</div>
     <div class="drvbtns"><a href="${url}" target="_blank" rel="noopener">${svg(P.pin,'')}${t('drv_open',{a:mapLbl()})}</a>${it.addr||it.local?`<button type="button" data-drvcopy>${svg('M8 8h11v12H8zM5 16V4h11','')}${t(it.addr?'drv_copy_a':'drv_copy_n')}</button>`:''}<button type="button" data-drvclose>${t('drv_close')}</button></div></div>`;
   el.addEventListener('click',e=>{if(e.target.closest('a'))return;if(e.target.closest('[data-drvcopy]')){e.stopPropagation();(navigator.clipboard?navigator.clipboard.writeText(it.addr||it.local):Promise.reject()).then(()=>toast(t('lv_copied2')),()=>{});return}if(e.target.closest('[data-drvclose]')||e.target===el)el.remove()});document.body.appendChild(el)}
+// ---- b7: open Amap via the app or the web (choice kept per device in S.amapVia)
+Object.assign(I.th,{amq_t:'เปิด Amap ด้วย',amq_s:'เลือกครั้งเดียว เครื่องนี้จะจำไว้',amq_fail:'แอป Amap ไม่เปิดขึ้นมา',amq_fail_s:'เครื่องนี้อาจยังไม่ได้ลงแอป Amap ลองเปิดผ่านเว็บแทนได้',amq_app:'แอป Amap',amq_app_h:'เปิดในแอปที่ลงไว้ในเครื่อง และค้นชื่อจีนให้เลย',amq_web:'เว็บ',amq_web_h:'เปิดในเบราว์เซอร์ ไม่ต้องลงแอป · อาจมีแถบชวนโหลดแอป',amq_rem:'เปลี่ยนได้ที่หน้าโปรไฟล์',set_amap:'เปิด Amap ด้วย',set_amap_h:'ตั้งแยกแต่ละเครื่อง',via_app:'แอป',via_web:'เว็บ',via_ask:'ถาม'});
+Object.assign(I.en,{amq_t:'Open Amap with',amq_s:'Choose once and this phone remembers',amq_fail:'Amap didn\'t open',amq_fail_s:'This phone may not have the Amap app yet. You can open it on the web instead.',amq_app:'Amap app',amq_app_h:'Opens the app on this phone and searches the Chinese name',amq_web:'Web',amq_web_h:'Opens in the browser, no app needed · may show a banner to get the app',amq_rem:'You can change this in Profile',set_amap:'Open Amap with',set_amap_h:'Set on each phone',via_app:'App',via_web:'Web',via_ask:'Ask'});
+function amapIOS(){return /iPhone|iPad|iPod/.test(navigator.userAgent)||(navigator.platform==='MacIntel'&&navigator.maxTouchPoints>1)}
+function isAmapWeb(h){return /^https:\/\/(uri\.amap\.com|surl\.amap\.com|(www\.)?amap\.com)\//i.test(h||'')}
+function amapApp(u){try{const x=new URL(u);if(x.hostname!=='uri.amap.com')return u;
+    if(amapIOS()){const k=x.searchParams.get('keyword');
+      if(k){const c=x.searchParams.get('city')||'';return 'iosamap://poi?sourceApplication=Crumb&name='+encodeURIComponent((c&&!k.startsWith(c)?c:'')+k)+'&dev=0'}
+      const p=(x.searchParams.get('position')||'').split(',');if(p.length===2)return `iosamap://viewMap?sourceApplication=Crumb&poiname=${encodeURIComponent(x.searchParams.get('name')||'')}&lat=${p[1]}&lon=${p[0]}&dev=1`}
+    x.searchParams.set('callnative','1');return x.toString()}catch(e){return u}}
+function amapGo(u){const app=amapApp(u);if(!/^iosamap:/.test(app)){window.open(app,'_blank','noopener');return}
+  let gone=false;const v=()=>{if(document.hidden)gone=true};document.addEventListener('visibilitychange',v);window.addEventListener('pagehide',v);
+  location.href=app;
+  setTimeout(()=>{document.removeEventListener('visibilitychange',v);window.removeEventListener('pagehide',v);if(!gone&&!document.hidden)amapAsk(u,true)},3000)}
+function amapAsk(u,failed){document.querySelectorAll('.amq').forEach(x=>x.remove());const el=document.createElement('div');el.className='amq';
+  const app=`<button type="button" class="amqo" data-amq="app">${svg('M8 2.5h8a1.5 1.5 0 0 1 1.5 1.5v16a1.5 1.5 0 0 1-1.5 1.5H8A1.5 1.5 0 0 1 6.5 20V4A1.5 1.5 0 0 1 8 2.5zM11 18h2','')}<span>${t('amq_app')}<small>${t('amq_app_h')}</small></span></button>`;
+  const web=`<button type="button" class="amqo" data-amq="web">${svg('M12 3a9 9 0 1 0 0 18a9 9 0 0 0 0-18zM3.5 9h17M3.5 15h17M12 3c-2.6 2.8-2.6 15.2 0 18M12 3c2.6 2.8 2.6 15.2 0 18','')}<span>${t('amq_web')}<small>${t('amq_web_h')}</small></span></button>`;
+  el.innerHTML=`<div class="amqin"><div class="amqh">${t(failed?'amq_fail':'amq_t')}</div><div class="amqs">${t(failed?'amq_fail_s':'amq_s')}</div>${failed?web+app:app+web}<div class="amqn">${t('amq_rem')}</div><button type="button" class="amqx" data-amqx>${t('cancel')}</button></div>`;
+  el.addEventListener('click',e=>{const b=e.target.closest('[data-amq]');if(b){S.amapVia=b.dataset.amq;save();el.remove();if(S.amapVia==='web')window.open(u,'_blank','noopener');else amapGo(u);return}
+    if(e.target.closest('[data-amqx]')||e.target===el)el.remove()});
+  document.body.appendChild(el)}
+function amapOpen(u){if(!isAmapWeb(u)||S.amapVia==='web'){window.open(u,'_blank','noopener');return}if(S.amapVia==='app')amapGo(u);else amapAsk(u)}
+document.addEventListener('click',e=>{const a=e.target.closest&&e.target.closest('a[href]');if(!a||!isAmapWeb(a.href)||S.amapVia==='web')return;
+  e.preventDefault();e.stopImmediatePropagation();amapOpen(a.href)},true);
+document.addEventListener('click',e=>{const b=e.target.closest&&e.target.closest('[data-amapvia]');if(!b)return;S.amapVia=b.dataset.amapvia||undefined;if(!S.amapVia)delete S.amapVia;save();renderSet()});
 document.addEventListener('click',e=>{const b=e.target.closest&&e.target.closest('[data-driver],[data-locadd]');if(!b)return;e.stopImmediatePropagation();e.preventDefault();
   if(b.hasAttribute('data-locadd')){const box=b.nextElementSibling;box.hidden=false;b.remove();box.querySelector('input').focus();return}
   const [di,id]=b.dataset.driver.split(':');const tr=trip(S.tripId);const it=tr&&tr.days[+di]&&tr.days[+di].items.find(x=>x.id===id);if(it)driverCard(it)},true);
@@ -1206,11 +1240,12 @@ function renderSet(){
     <div class="row"><div class="l">${t('lang')}</div><div class="seg">${['th','en'].map(l=>`<button class="${S.lang===l?'on':''}" data-lang="${l}">${l==='th'?'ไทย':'English'}</button>`).join('')}</div></div>
     <div class="row" style="flex-direction:column;align-items:stretch"><div class="l" style="margin-bottom:8px">${t('palette')}</div><div class="pals">${PALS.map(([k,lb,c1,c2,c3])=>`<button class="pal ${(S.palette||'cream')===k?'on':''}" data-pal="${k}"><span class="sw3"><i style="background:${c1}"></i><i style="background:${c2}"></i><i style="background:${c3}"></i></span>${t(lb)}</button>`).join('')}</div></div>
     <div class="row"><div class="l">${t('theme')}</div><div class="seg">${['auto','light','dark'].map(x=>`<button class="${S.theme===x?'on':''}" data-t="${x}">${t(x)}</button>`).join('')}</div></div>
+    ${S.trips.some(x=>x.mapApp==='amap')||S.amapVia?`<div class="row"><div><div class="l">${t('set_amap')}</div><div class="h">${t('set_amap_h')}</div></div><div class="seg">${[['app','via_app'],['web','via_web'],['','via_ask']].map(([k,l])=>`<button class="${(S.amapVia||'')===k?'on':''}" data-amapvia="${k}">${t(l)}</button>`).join('')}</div></div>`:''}
   </div>
   <div class="set">
     <div class="row"><div><div class="l">${t('export_png')}</div><div class="h">${t('export_h')}</div></div><button class="back" style="margin:0" data-export-png>${svg(P.photo,'')}PNG</button></div>
   </div>
-  <p class="hint">${t('hint')}</p><p class="hint" style="margin-top:10px;text-align:left">Crumb Beta b6 · v3.18</p>`;
+  <p class="hint">${t('hint')}</p><p class="hint" style="margin-top:10px;text-align:left">Crumb Beta b7 · v3.18</p>`;
 }
 function appearanceSheet(){
   const PALS=[['cream','pal_cream','#FFF9F0','#EACB9D','#D6A76F'],['lavender','pal_lav','#F5F0FF','#D0B8F2','#9B82CF'],['teal','pal_teal','#EFF8F5','#B7E1D9','#55ADA2'],['pastel','pal_pastel','#FFF9F0','#FFE6E1','#DFF6EB'],['bright','pal_bright','#58A6FF','#EE6158','#FBE449'],['sunny','pal_sunny','#FFF6C7','#FBE449','#D4A017']];
